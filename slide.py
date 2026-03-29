@@ -25,7 +25,11 @@ import multiprocessing
 
 
 OPENSLIDE_PATH = cg.OPENSLIDE_BIN_PATH
-with os.add_dll_directory(OPENSLIDE_PATH): import openslide
+if hasattr(os, 'add_dll_directory') and OPENSLIDE_PATH:
+    with os.add_dll_directory(OPENSLIDE_PATH):
+        import openslide
+else:
+    import openslide
 
 from openslide import OpenSlideError
 import PIL

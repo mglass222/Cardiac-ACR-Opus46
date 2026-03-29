@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+
+# Data files (large — keep out of git)
+data/WSI/
+data/DeepHistoPath/
+data/Backend/
+data/Saved_Models/
+
+# Keep the directory structure via .gitkeep files
+!data/**/.gitkeep

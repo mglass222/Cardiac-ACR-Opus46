@@ -48,9 +48,9 @@ def process_tilesets_multiprocess(slide_num):
 
 def process_tiles(slide_num):
 
-    TILE_SET_DIR = cg.TILE_DIR + str(slide_num)
+    TILE_SET_DIR = os.path.join(cg.TILE_DIR, str(slide_num))
 
-    OUTPUT_DIR = cg.SPLIT_TILE_DIR + str(slide_num)
+    OUTPUT_DIR = os.path.join(cg.SPLIT_TILE_DIR, str(slide_num))
 
     utils.make_directory(OUTPUT_DIR)
 
@@ -112,16 +112,16 @@ def tiles_to_patches(tile_list, slide_num):
     
     t = time.time()
     
-    TILE_SET_DIR = cg.TILE_DIR + str(slide_num)
-    OUTPUT_DIR = cg.SPLIT_TILE_DIR + str(slide_num)
+    TILE_SET_DIR = os.path.join(cg.TILE_DIR, str(slide_num))
+    OUTPUT_DIR = os.path.join(cg.SPLIT_TILE_DIR, str(slide_num))
     
     # print("Tile list = ", tile_list)
     
     for i in range(len(tile_list)):
         tile = tile_list[i]
 
-        tile_path = TILE_SET_DIR + "\\" + tile
-        tile_name = tile_path.split(".")[0].split("\\")[5] + ".png"
+        tile_path = os.path.join(TILE_SET_DIR, tile)
+        tile_name = os.path.splitext(os.path.basename(tile_path))[0] + ".png"
 
         image = Image.open(tile_path)
 
@@ -173,7 +173,7 @@ def tiles_to_patches(tile_list, slide_num):
 
                         new_image_name = utils.get_patchname(tile_name, slide_num, x_start, y_start)
 
-                        new_image_path =  new_image_path = OUTPUT_DIR + "\\" + str(new_image_name)
+                        new_image_path = os.path.join(OUTPUT_DIR, str(new_image_name))
                         # print(new_image_path)
                         new_image.save(new_image_path)
 

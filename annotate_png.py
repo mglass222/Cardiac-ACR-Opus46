@@ -1,5 +1,6 @@
 # import project modules ###
 
+import os
 import cardiac_utils as utils
 import cardiac_globals as cg
 
@@ -75,7 +76,7 @@ def annotate_png(slide_number):
 
 
 		
-	save_dir = cg.ANNOTATED_PNG_DIR + "CONFIDENCE " + str(cg.PREDICTION_THRESHOLD*100) + "%\\"
+	save_dir = os.path.join(cg.ANNOTATED_PNG_DIR, "CONFIDENCE " + str(cg.PREDICTION_THRESHOLD*100) + "%")
 	
 	utils.make_directory(save_dir)
 	

@@ -109,6 +109,53 @@ main()
 - Uncommented `slides_to_process = utils.get_test_slide_numbers()` and removed hardcoded `[111]`
 - Fixed dead reference to removed `training_slide_range_to_images` in `multiprocess_training_slides_to_images`
 
+## Cross-Platform Path Refactor (2026-03-28)
+
+### Problem
+All paths were hardcoded Windows paths (`D:\Cardiac_ACR\`, `E:\Cardiac_ACR\`, `C:\Windows\Fonts\`) with `\\` separators, making the code Windows-only.
+
+### Solution
+- **`cardiac_globals.py`**: Rewrote to derive all paths from `PROJECT_ROOT` using `os.path.join()`. Data lives under `data/` in the project folder. Font lives under `fonts/`.
+- **`OPENSLIDE_BIN_PATH`**: Now read from `OPENSLIDE_BIN_PATH` environment variable (empty by default; only needed on Windows).
+- **`count_1r2.py`**: Replaced 8 hardcoded paths with `cg.*` references from cardiac_globals.
+- **All files**: Replaced every `"\\"` concatenation with `os.path.join()`. Fixed `split("\\")[5]` filename extraction with `os.path.basename()`.
+- **`slide.py` / `import_openslide.py`**: OpenSlide import is now platform-aware (uses `add_dll_directory` only on Windows when path is set).
+- **`tiles.py`**: Font paths now reference `cg.FONT_PATH` instead of hardcoded Windows path.
+- **Main file**: Removed `sys.path.insert()` hack (unnecessary when all files are in same directory).
+
+### Data directory structure
+```
+data/
+├── WSI/Test/                              (input slides)
+├── WSI/Training/
+├── WSI/TEST_SLIDE_ANNOTATIONS/Weighted_Loss/
+├── DeepHistoPath/training_png/
+├── DeepHistoPath/tile_data/
+├── DeepHistoPath/tiles_png/
+├── DeepHistoPath/filter_png/
+├── DeepHistoPath/tiles_png_split/
+├── Backend/Saved_Databases/Weighted_Loss/
+├── Backend/Annotated_Test_Slides/Weighted_Loss/
+├── Backend/Slide_Dx/Weighted_Loss/
+├── Backend/Test_Slide_Predictions/Weighted_Loss/
+├── Backend/Count_1R2/
+│   ├── ROI-1R2-Only/
+│   ├── ROI-Filtered-PNG/
+│   ├── Annotated_1R2/
+│   └── Segmented/ (Bounding_Boxes/, Combined_Boxes/)
+└── Saved_Models/Weighted_Loss/
+fonts/
+    arial.ttf                              (user must place font file here)
+```
+
+### Setup on Windows
+Set the environment variable for OpenSlide:
+```
+set OPENSLIDE_BIN_PATH=C:\Openslide_4003\bin
+```
+
 ## Notes
 - `annotate_svs.py` has its own internal `get_coords_from_name()` that duplicates the one in `cardiac_utils.py`
 - All remaining code is actively used in the execution path
+- Place `.svs` slide files in `data/WSI/Test/` and trained model in `data/Saved_Models/Weighted_Loss/`
+- Place `arial.ttf` (or compatible font) in `fonts/`

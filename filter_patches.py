@@ -194,10 +194,10 @@ def apply_filters_to_image(image, save_dir, save, display=False):
   # info = dict()
 
   image_path = image
-  image_name = image_path.split(".")[0].split("\\")[5]
-  image_ext = image_path.split(".")[1]
+  image_name = os.path.splitext(os.path.basename(image_path))[0]
+  image_ext = os.path.splitext(image_path)[1].lstrip(".")
 
-  result_path = save_dir + "\\" + image_name + "_filtered" + "." + image_ext
+  result_path = os.path.join(save_dir, image_name + "_filtered." + image_ext)
 
   image = Image.open(image_path)
   np_orig = np.asarray(image)
@@ -260,11 +260,11 @@ def multiprocess_apply_filters_to_images(folder, save=False, display=False, html
 
   print("Applying filters to Patches (multiprocess)\n")
 
-  split_tiles_dir = cg.SPLIT_TILE_DIR + str(folder) + "\\"
+  split_tiles_dir = os.path.join(cg.SPLIT_TILE_DIR, str(folder))
 
-  save_dir = cg.SPLIT_TILE_DIR + str(folder) + "_filtered" + "\\"
+  save_dir = os.path.join(cg.SPLIT_TILE_DIR, str(folder) + "_filtered")
 
-  image_list = [split_tiles_dir + image for image in os.listdir(split_tiles_dir)]  
+  image_list = [os.path.join(split_tiles_dir, image) for image in os.listdir(split_tiles_dir)]
 
   num_images = len(image_list)
 

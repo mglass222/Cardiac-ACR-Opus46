@@ -3,9 +3,6 @@
 
 # import project modules ###
 
-import sys
-py_path = "D:\\Cardiac_ACR\\Py_Files\\"
-sys.path.insert(0, py_path)
 
 # import openslide
 import cardiac_globals as cg
@@ -87,8 +84,8 @@ def classify_patches_batch(slide_number):
 
     t = time.time()
     batch_size = 200
-    patch_dir = SPLIT_TILE_DIR + str(slide_number) + "\\"
-    patches = [patch_dir + patch for patch in listdir(patch_dir)]
+    patch_dir = os.path.join(SPLIT_TILE_DIR, str(slide_number))
+    patches = [os.path.join(patch_dir, patch) for patch in listdir(patch_dir)]
 
     num_patches = len(patches)
     num_batches = int(num_patches / batch_size)

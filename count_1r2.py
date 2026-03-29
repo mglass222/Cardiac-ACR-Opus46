@@ -18,26 +18,14 @@ from skimage import measure
 import cardiac_utils as utils
 import cardiac_globals as cg
 
-filtered_image_dir = cg.FILTERED_IMAGE_DIR
-
-count_1r2_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\'
-roi_1r2_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\ROI-1R2-Only\\'
-roi_filter_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\ROI-Filtered-PNG\\'
-annotated_1r2_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\Annotated_1R2\\'
-
-segmented_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\Segmented\\'
-bounding_boxes_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\Segmented\\Bounding_Boxes\\'
-combined_boxes_dir = 'D:\\Cardiac_ACR\\Backend\\Count_1R2\\Segmented\\Combined_Boxes\\'
-
-
 # make sure roi save directories exist
-if not os.path.isdir(roi_1r2_dir): os.makedirs(roi_1r2_dir)
+if not os.path.isdir(cg.ROI_1R2_DIR): os.makedirs(cg.ROI_1R2_DIR)
 
-if not os.path.isdir(roi_filter_dir): os.makedirs(roi_filter_dir)
+if not os.path.isdir(cg.ROI_FILTER_DIR): os.makedirs(cg.ROI_FILTER_DIR)
 
-if not os.path.isdir(combined_boxes_dir):  os.makedirs(combined_boxes_dir)
+if not os.path.isdir(cg.COMBINED_BOXES_DIR):  os.makedirs(cg.COMBINED_BOXES_DIR)
 
-if not os.path.isdir(segmented_dir):  os.makedirs(segmented_dir)
+if not os.path.isdir(cg.SEGMENTED_DIR):  os.makedirs(cg.SEGMENTED_DIR)
 
 
 def combine_boxes(box1, box2):
@@ -241,7 +229,7 @@ def annotate_1r2(slide_number):
     
     filename = "model_predictions_dict_" + str(slide_number) + "_filtered.pickle" 
         
-    with open(cg.SAVED_DATABASE_DIR + filename, 'rb') as handle:
+    with open(os.path.join(cg.SAVED_DATABASE_DIR, filename), 'rb') as handle:
         filtered_predictions = pickle.load(handle)
     
     t = time.time()
@@ -298,11 +286,11 @@ def annotate_1r2(slide_number):
             counter += 1
 
         
-    save_dir = annotated_1r2_dir
+    save_dir = cg.ANNOTATED_1R2_DIR
 
     if not os.path.isdir(save_dir): os.makedirs(save_dir)
 
-    save_path = save_dir + str(slide_number) + "_1r2.png" 
+    save_path = os.path.join(save_dir, str(slide_number) + "_1r2.png")
 
     # Convert to RGB
     image = image.convert(mode = 'RGB')
@@ -320,11 +308,11 @@ def segment_image(slide_number):
     import shutil
 
     # the image with only 1r2 annotations made above
-    image_1r2 = annotated_1r2_dir +  str(slide_number) + "_1r2.png"
+    image_1r2 = os.path.join(cg.ANNOTATED_1R2_DIR, str(slide_number) + "_1r2.png")
     image_1r2 = cv2.imread(image_1r2)
     
     # get the original filtered image for segementation
-    images = os.listdir(filtered_image_dir) 
+    images = os.listdir(cg.FILTERED_IMAGE_DIR)
     for image in images:
         if image.split(".")[0].split("-")[-1] == "filtered" and image.split(".")[0].split("-")[0] == str(slide_number):
             filtered_image = image
@@ -332,7 +320,7 @@ def segment_image(slide_number):
 
     
     # segment tissue on the original filtered image
-    image = cv2.imread(filtered_image_dir + filtered_image)
+    image = cv2.imread(os.path.join(cg.FILTERED_IMAGE_DIR, filtered_image))
     image_copy = image.copy()
     image_orig = image.copy()
 
@@ -369,11 +357,9 @@ def segment_image(slide_number):
 
 
     # save a copy of the raw boxes for analysis
-    save_dir = bounding_boxes_dir
+    if not os.path.isdir(cg.BOUNDING_BOXES_DIR): os.makedirs(cg.BOUNDING_BOXES_DIR)
 
-    if not os.path.isdir(bounding_boxes_dir): os.makedirs(bounding_boxes_dir)
-
-    save_path = bounding_boxes_dir + str(slide_number) + "_orig_boxes.jpg"
+    save_path = os.path.join(cg.BOUNDING_BOXES_DIR, str(slide_number) + "_orig_boxes.jpg")
     cv2.imwrite(save_path, image_copy)
 
 
@@ -386,7 +372,7 @@ def segment_image(slide_number):
     #############################################################
 
     # save ROI on the 1R2 image
-    path = roi_1r2_dir + str(slide_number)
+    path = os.path.join(cg.ROI_1R2_DIR, str(slide_number))
 
     #delete old results
     if isdir(path): shutil.rmtree(path)
@@ -404,14 +390,14 @@ def segment_image(slide_number):
         x1,y1,x2,y2 = get_coords(box)
 
 
-        filename = roi_1r2_dir + str(slide_number) + "\\" + "roi_{}.png".format(roi_number)
+        filename = os.path.join(cg.ROI_1R2_DIR, str(slide_number), "roi_{}.png".format(roi_number))
         roi = image_1r2[y1:y2, x1:x2]
         cv2.imwrite(filename, roi)
 
         # save ROI on the filtered png image
         # Use later for further segmentation if needed (isolate the tissue in individual roi)
-        utils.make_directory(roi_filter_dir + str(slide_number))
-        filename = roi_filter_dir + str(slide_number) + "\\" + "roi_{}.png".format(roi_number)
+        utils.make_directory(os.path.join(cg.ROI_FILTER_DIR, str(slide_number)))
+        filename = os.path.join(cg.ROI_FILTER_DIR, str(slide_number), "roi_{}.png".format(roi_number))
         roi = image_orig[y1:y2, x1:x2]
         cv2.imwrite(filename, roi)
 
@@ -426,11 +412,11 @@ def segment_image(slide_number):
 
     
     # Save image with combined boxes to review  
-    filename = combined_boxes_dir + str(slide_number) + "_combined_boxes.jpg"
+    filename = os.path.join(cg.COMBINED_BOXES_DIR, str(slide_number) + "_combined_boxes.jpg")
     cv2.imwrite(filename, image)
 
     # Save image with combined boxes to review  
-    filename = segmented_dir + "1R2_Only\\" + str(slide_number) + "_orig_boxes.jpg"
+    filename = os.path.join(cg.SEGMENTED_DIR, "1R2_Only", str(slide_number) + "_orig_boxes.jpg")
     cv2.imwrite(filename, image_1r2)
 
 
@@ -438,7 +424,7 @@ def analyze_segments(slide_number):
 
     segment_list = []
 
-    path = roi_1r2_dir + str(slide_number) + "\\"
+    path = os.path.join(cg.ROI_1R2_DIR, str(slide_number))
 
     all_roi = os.listdir(path)
 
@@ -450,7 +436,7 @@ def analyze_segments(slide_number):
 
         roi_name = all_roi[i].split(".")[0]
 
-        roi = path + all_roi[i]
+        roi = os.path.join(path, all_roi[i])
         image = Image.open(roi)
         image = ImageOps.grayscale(image)
         image = np.array(image)
@@ -463,7 +449,7 @@ def analyze_segments(slide_number):
             patches = ndimage.morphology.binary_dilation(patches, iterations=cg._1R2_DILATION_ITERS)
             save_img = Image.fromarray(patches)
 
-            save_path = path + roi_name + "_dilated.png"
+            save_path = os.path.join(path, roi_name + "_dilated.png")
 
             save_img.save(save_path)
 
