@@ -1,13 +1,15 @@
-# Cardiac-ACR Code Analysis
+# Cardiac-ACR Development Log
 
-## Date: 2026-03-28 (updated after cleanup)
+Development history, code trace, and refactoring notes for the Cardiac-ACR project.
+
+---
 
 ## Entry Point
 `cardiac_acr_diagnose_wsi.py`
 
 ---
 
-## Active Execution Flow
+## Execution Flow Trace
 
 ### Module-level (runs on import):
 1. Imports all project modules (triggers module-level code in each)
@@ -153,6 +155,12 @@ Set the environment variable for OpenSlide:
 ```
 set OPENSLIDE_BIN_PATH=C:\Openslide_4003\bin
 ```
+
+## File Rename (2026-03-28)
+
+- `Cardiac_ACR_Backend_V13_FINAL.py` renamed to `cardiac_acr_diagnose_wsi.py` — reflects that the script diagnoses whole-slide images rather than being a generic "backend"
+- `CODE_ANALYSIS.md` renamed to `DEVELOPMENT_LOG.md` — better describes its role as a development history and technical reference
+- Added `README.md` with full project documentation: pipeline overview, setup instructions, configuration reference, output locations
 
 ## Notes
 - `annotate_svs.py` has its own internal `get_coords_from_name()` that duplicates the one in `cardiac_utils.py`

@@ -1,0 +1,211 @@
+# Cardiac-ACR: Automated Cardiac Allograft Rejection Grading
+
+Automated diagnosis of acute cellular rejection (ACR) in cardiac transplant biopsies using deep learning on whole-slide images (WSI).
+
+The system processes `.svs` whole-slide images through a multi-stage pipeline — tissue extraction, filtering, tiling, patch classification with a ResNet-50 model, and slide-level diagnosis — to produce an ISHLT rejection grade (0R, 1R1A, 1R2, or 2R).
+
+## Pipeline Overview
+
+```
+Input: .svs whole-slide images
+                │
+                ▼
+┌─────────────────────────────┐
+│  1. Slide Extraction        │  Convert SVS to scaled-down PNG images
+│     (slide.py)              │
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  2. Tissue Filtering        │  Remove background, pen marks, gray areas
+│     (filter.py)             │  to isolate tissue regions
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  3. Tiling                  │  Divide filtered image into scored tiles,
+│     (tiles.py)              │  save top-scoring tissue tiles
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  4. Patch Splitting         │  Split tiles into 224x224 patches
+│     (tileset_utils.py)      │  for neural network input
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  5. Patch Filtering         │  Remove patches with <50% tissue
+│     (filter_patches.py)     │
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  6. Classification          │  ResNet-50 classifies each patch into
+│     (cardiac_acr_diagnose_  │  one of 6 classes: 1R1A, 1R2, Healing,
+│      wsi.py)                │  Hemorrhage, Normal, Quilty
+└���─────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  7. Diagnosis               │  Aggregate patch predictions into
+│     (cardiac_acr_diagnose_  │  slide-level ISHLT rejection grade
+│      wsi.py + count_1r2.py) │  (0R, 1R1A, 1R2, 2R)
+└──────────────┬──────────────┘
+               ▼
+┌─────────────────────────────┐
+│  8. Annotation              │  Annotate PNG slides and generate
+│     (annotate_png.py,       │  XML annotations for SVS viewer
+│      annotate_svs.py)       │
+└──────────────┘
+```
+
+## Requirements
+
+- Python 3.8+
+- PyTorch
+- torchvision
+- OpenSlide (+ Python bindings)
+- OpenCV (`cv2`)
+- NumPy, Pillow, scikit-image, scipy, scikit-learn
+- matplotlib (used by slide extraction)
+
+### Install dependencies
+
+```bash
+pip install torch torchvision openslide-python opencv-python numpy Pillow scikit-image scipy scikit-learn matplotlib
+```
+
+### OpenSlide
+
+- **macOS**: `brew install openslide`
+- **Linux**: `apt-get install openslide-tools` or equivalent
+- **Windows**: Download OpenSlide binaries and set the environment variable:
+  ```
+  set OPENSLIDE_BIN_PATH=C:\path\to\openslide\bin
+  ```
+
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/mglass222/Cardiac-ACR-Opus46.git
+cd Cardiac-ACR-Opus46
+```
+
+### 2. Place your data
+
+```
+data/
+├── WSI/Test/                    Place .svs slide files here
+├── Saved_Models/Weighted_Loss/  Place trained model (resnet50_ft) here
+```
+
+All other directories under `data/` are created automatically or populated during processing.
+
+### 3. Place a font file
+
+The tile summary visualizations require a TrueType font:
+
+```
+fonts/arial.ttf
+```
+
+Copy `Arial.ttf` from your system fonts, or use any compatible `.ttf` font.
+
+### 4. Run
+
+```bash
+python cardiac_acr_diagnose_wsi.py
+```
+
+The pipeline will:
+1. Find all `.svs` files in `data/WSI/Test/`
+2. Process each slide through the full pipeline
+3. Output a rejection grade for each slide
+4. Save annotated PNG images and SVS-compatible XML annotations
+
+## Project Structure
+
+```
+Cardiac-ACR-Opus46/
+│
+├── cardiac_acr_diagnose_wsi.py   Main entry point — runs the full pipeline
+├── cardiac_globals.py            Configuration — all paths and parameters
+├── cardiac_utils.py              Shared utility functions
+│
+├── slide.py                      WSI loading and PNG extraction
+├── filter.py                     Tissue filtering (green channel, grays, pen marks)
+├── tiles.py                      Tile scoring, summaries, and extraction
+├── tileset_utils.py              Split tiles into 224x224 patches
+├── filter_patches.py             Filter patches by tissue content
+├── count_1r2.py                  1R2 rejection focus counting via segmentation
+│
+├── annotate_png.py               Color-coded patch annotations on PNG slides
+├── annotate_svs.py               XML annotation generation for SVS viewers
+│
+├── import_openslide.py           Platform-aware OpenSlide import
+├── util.py                       Low-level image/array utilities (from DeepHistoPath)
+│
+├── data/                         All input/output data (not tracked in git)
+├── fonts/                        Font files for tile visualizations
+├── .gitignore
+└── DEVELOPMENT_LOG.md            Code trace, cleanup history, and refactor notes
+```
+
+## Configuration
+
+All configurable parameters are in `cardiac_globals.py`:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `ANNOTATION_SIZE` | 224 | Patch size (pixels) for neural network input |
+| `SCALE_FACTOR` | 40 | Downscale factor for slide-to-PNG conversion |
+| `PREDICTION_THRESHOLD` | 0.99 | Minimum confidence for a patch prediction to count |
+| `BATCH_SIZE` | 200 | Batch size for GPU inference |
+| `_1R2_DILATION_ITERS` | 28 | Dilation iterations for 1R2 focus counting |
+
+## Classification Classes
+
+| Class | Index | Description |
+|---|---|---|
+| 1R1A | 0 | Mild acute cellular rejection (focal) |
+| 1R2 | 1 | Moderate acute cellular rejection (multifocal) |
+| Healing | 2 | Healing rejection |
+| Hemorrhage | 3 | Hemorrhage |
+| Normal | 4 | Normal tissue |
+| Quilty | 5 | Quilty lesion (benign endocardial infiltrate) |
+
+## Diagnosis Logic
+
+The slide-level ISHLT grade is determined by aggregating patch predictions:
+
+| Condition | Grade |
+|---|---|
+| No 1R1A and no 1R2 foci | **0R** (no rejection) |
+| 1R1A patches present, no 1R2 foci | **1R** (mild) |
+| 1 focus of 1R2 | **1R** (moderate, focal) |
+| 2+ foci of 1R2 | **2R** (moderate, multifocal) |
+
+The 1R2 focus count uses morphological segmentation (`count_1r2.py`) rather than simple patch counting — nearby 1R2 patches are grouped into foci using dilation and connected component analysis.
+
+## Multiprocessing
+
+The pipeline uses Python `multiprocessing` at multiple stages for parallel processing across CPU cores:
+- Slide extraction (one process per slide)
+- Tissue filtering (one process per image chunk)
+- Tile generation (one process per slide)
+- Patch splitting (one process per tile chunk)
+- Patch filtering (one process per patch chunk)
+
+GPU inference (patch classification) uses batch processing on a single GPU.
+
+## Output
+
+After processing, results are saved to:
+
+| Output | Location |
+|---|---|
+| Scaled PNG slides | `data/DeepHistoPath/training_png/` |
+| Filtered images | `data/DeepHistoPath/filter_png/` |
+| Tile images | `data/DeepHistoPath/tiles_png/` |
+| 224x224 patches | `data/DeepHistoPath/tiles_png_split/` |
+| Model predictions | `data/Backend/Saved_Databases/Weighted_Loss/` |
+| Slide diagnoses | `data/Backend/Slide_Dx/Weighted_Loss/` |
+| Annotated PNGs | `data/Backend/Annotated_Test_Slides/Weighted_Loss/` |
+| SVS XML annotations | `data/WSI/TEST_SLIDE_ANNOTATIONS/Weighted_Loss/` |
