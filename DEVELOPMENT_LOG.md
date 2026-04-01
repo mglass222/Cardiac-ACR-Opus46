@@ -162,6 +162,12 @@ set OPENSLIDE_BIN_PATH=C:\Openslide_4003\bin
 - `CODE_ANALYSIS.md` renamed to `DEVELOPMENT_LOG.md` — better describes its role as a development history and technical reference
 - Added `README.md` with full project documentation: pipeline overview, setup instructions, configuration reference, output locations
 
+## Code Directory Reorganization (2026-04-01)
+
+- Moved all 13 `.py` source files into `Code/` subdirectory to separate source code from project docs and data
+- Updated `cardiac_globals.py` `PROJECT_ROOT` to go up one extra directory level (`Code/` -> project root)
+- Updated README.md project structure and run command to reflect new layout
+
 ## Notes
 - `annotate_svs.py` has its own internal `get_coords_from_name()` that duplicates the one in `cardiac_utils.py`
 - All remaining code is actively used in the execution path

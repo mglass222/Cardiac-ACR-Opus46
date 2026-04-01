@@ -4,7 +4,7 @@
 import os
 
 ### Project Root ###
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ### Main Source / Output Folders ###
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")

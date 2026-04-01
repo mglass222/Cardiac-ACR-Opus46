@@ -111,7 +111,7 @@ Copy `Arial.ttf` from your system fonts, or use any compatible `.ttf` font.
 ### 4. Run
 
 ```bash
-python cardiac_acr_diagnose_wsi.py
+python Code/cardiac_acr_diagnose_wsi.py
 ```
 
 The pipeline will:
@@ -125,32 +125,34 @@ The pipeline will:
 ```
 Cardiac-ACR-Opus46/
 │
-├── cardiac_acr_diagnose_wsi.py   Main entry point — runs the full pipeline
-├── cardiac_globals.py            Configuration — all paths and parameters
-├── cardiac_utils.py              Shared utility functions
+├── Code/
+│   ├── cardiac_acr_diagnose_wsi.py   Main entry point — runs the full pipeline
+│   ├── cardiac_globals.py            Configuration — all paths and parameters
+│   ├── cardiac_utils.py              Shared utility functions
+│   │
+│   ├── slide.py                      WSI loading and PNG extraction
+│   ├── filter.py                     Tissue filtering (green channel, grays, pen marks)
+│   ├── tiles.py                      Tile scoring, summaries, and extraction
+│   ├── tileset_utils.py              Split tiles into 224x224 patches
+│   ├── filter_patches.py             Filter patches by tissue content
+│   ├── count_1r2.py                  1R2 rejection focus counting via segmentation
+│   │
+│   ├── annotate_png.py               Color-coded patch annotations on PNG slides
+│   ├── annotate_svs.py               XML annotation generation for SVS viewers
+│   │
+│   ├── import_openslide.py           Platform-aware OpenSlide import
+│   └── util.py                       Low-level image/array utilities (from DeepHistoPath)
 │
-├── slide.py                      WSI loading and PNG extraction
-├── filter.py                     Tissue filtering (green channel, grays, pen marks)
-├── tiles.py                      Tile scoring, summaries, and extraction
-├── tileset_utils.py              Split tiles into 224x224 patches
-├── filter_patches.py             Filter patches by tissue content
-├── count_1r2.py                  1R2 rejection focus counting via segmentation
-│
-├── annotate_png.py               Color-coded patch annotations on PNG slides
-├── annotate_svs.py               XML annotation generation for SVS viewers
-│
-├── import_openslide.py           Platform-aware OpenSlide import
-├── util.py                       Low-level image/array utilities (from DeepHistoPath)
-│
-├── data/                         All input/output data (not tracked in git)
-├── fonts/                        Font files for tile visualizations
+├── data/                             All input/output data (not tracked in git)
+├── fonts/                            Font files for tile visualizations
 ├── .gitignore
-└── DEVELOPMENT_LOG.md            Code trace, cleanup history, and refactor notes
+├── README.md
+└── DEVELOPMENT_LOG.md                Code trace, cleanup history, and refactor notes
 ```
 
 ## Configuration
 
-All configurable parameters are in `cardiac_globals.py`:
+All configurable parameters are in `Code/cardiac_globals.py`:
 
 | Parameter | Default | Description |
 |---|---|---|
