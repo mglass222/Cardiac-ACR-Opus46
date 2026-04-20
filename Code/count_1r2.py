@@ -1,16 +1,14 @@
 import cv2
-from matplotlib import pyplot as plt
 import numpy as np
 import time
-import random
 import os
-from os.path import isdir, isfile
+from os.path import isdir
 
 import pickle
 
 
 from PIL import Image, ImageOps
-from skimage import filters, io
+from skimage import filters
 from scipy import ndimage
 from skimage import measure
 
@@ -163,29 +161,6 @@ def remove_small(cnts):
     return cnts
 
   
-
-def pad_image(image_copy,image_dims,x1,y1,x2,y2):
-
-    img_h = image_dims[0]
-    img_w = image_dims[1]
-
-    borderType = cv2.BORDER_CONSTANT
-
-    value = [0,0,0]
-
-    [left, right, top, bottom] = [None, None, None, None]
-
-    if x1 < 0: left = -x1
-    if y1 < 0: top = -y1
-    if x2 > img_w: right = x2-img_w
-    if y2 > img_h: bottom = y2-img_h
-
-    if left or right or top or bottom:
-
-        image_copy = cv2.copyMakeBorder(image_copy, top, bottom, left, right, borderType, None, value)
-        
-    return image_copy
-
 
 def enlarge_boxes(x,y,w,h,offset,image_dims):
     

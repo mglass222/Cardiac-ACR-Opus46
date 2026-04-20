@@ -434,16 +434,12 @@ def filter_grays(rgb, tolerance=15, output_type="bool"):
   return result
 
 
-def apply_image_filters(np_img, slide_num=None, info=None, save=False, display=False):
+def apply_image_filters(np_img):
   """
-  Apply filters to image as NumPy array and optionally save and/or display filtered images.
+  Apply filters to an image represented as a NumPy array.
 
   Args:
     np_img: Image as NumPy array.
-    slide_num: The slide number (used for saving/displaying).
-    info: Dictionary of slide information (used for HTML display).
-    save: If True, save image.
-    display: If True, display image.
 
   Returns:
     Resulting filtered image as a NumPy array.
@@ -490,19 +486,16 @@ def apply_filters_to_image(slide_num, save=True, display=False):
     display: If True, display filtered images to screen.
 
   Returns:
-    Tuple consisting of 1) the resulting filtered image as a NumPy array, and 2) dictionary of image information
-    (used for HTML page generation).
+    The resulting filtered image as a NumPy array.
   """
   t = Time()
   print("Processing slide #%d" % slide_num)
-
-  info = dict()
 
   if save and not os.path.exists(slide.FILTER_DIR):
     os.makedirs(slide.FILTER_DIR)
   img_path = slide.get_training_image_path(slide_num)
   np_orig = slide.open_image_np(img_path)
-  filtered_np_img = apply_image_filters(np_orig, slide_num, info, save=save, display=display)
+  filtered_np_img = apply_image_filters(np_orig)
 
   if save:
     t1 = Time()
@@ -518,157 +511,7 @@ def apply_filters_to_image(slide_num, save=True, display=False):
 
   print("Slide #%03d processing time: %s\n" % (slide_num, str(t.elapsed())))
 
-  return filtered_np_img, info
-
-
-def mask_percentage_text(mask_percentage):
-  """
-  Generate a formatted string representing the percentage that an image is masked.
-
-  Args:
-    mask_percentage: The mask percentage.
-
-  Returns:
-    The mask percentage formatted as a string.
-  """
-  return "%3.2f%%" % mask_percentage
-
-
-def image_cell(slide_num, filter_num, display_text, file_text):
-  """
-  Generate HTML for viewing a processed image.
-
-  Args:
-    slide_num: The slide number.
-    filter_num: The filter number.
-    display_text: Filter display name.
-    file_text: Filter name for file.
-
-  Returns:
-    HTML for a table cell for viewing a filtered image.
-  """
-  filt_img = slide.get_filter_image_path(slide_num, filter_num, file_text)
-  filt_thumb = slide.get_filter_thumbnail_path(slide_num, filter_num, file_text)
-  img_name = slide.get_filter_image_filename(slide_num, filter_num, file_text)
-  return "      <td>\n" + \
-         "        <a target=\"_blank\" href=\"%s\">%s<br/>\n" % (filt_img, display_text) + \
-         "          <img src=\"%s\" />\n" % (filt_thumb) + \
-         "        </a>\n" + \
-         "      </td>\n"
-
-
-def html_header(page_title):
-  """
-  Generate an HTML header for previewing images.
-
-  Returns:
-    HTML header for viewing images.
-  """
-  html = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" " + \
-         "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" + \
-         "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">\n" + \
-         "  <head>\n" + \
-         "    <title>%s</title>\n" % page_title + \
-         "    <style type=\"text/css\">\n" + \
-         "     img { border: 2px solid black; }\n" + \
-         "     td { border: 2px solid black; }\n" + \
-         "    </style>\n" + \
-         "  </head>\n" + \
-         "  <body>\n"
-  return html
-
-
-def html_footer():
-  """
-  Generate an HTML footer for previewing images.
-
-  Returns:
-    HTML footer for viewing images.
-  """
-  html = "</body>\n" + \
-         "</html>\n"
-  return html
-
-
-def generate_filter_html_result(html_page_info):
-  """
-  Generate HTML to view the filtered images. If slide.FILTER_PAGINATE is True, the results will be paginated.
-
-  Args:
-    html_page_info: Dictionary of image information.
-  """
-  if not slide.FILTER_PAGINATE:
-    html = ""
-    html += html_header("Filtered Images")
-    html += "  <table>\n"
-
-    row = 0
-    for key in sorted(html_page_info):
-      value = html_page_info[key]
-      current_row = value[0]
-      if current_row > row:
-        html += "    <tr>\n"
-        row = current_row
-      html += image_cell(value[0], value[1], value[2], value[3])
-      next_key = key + 1
-      if next_key not in html_page_info:
-        html += "    </tr>\n"
-
-    html += "  </table>\n"
-    html += html_footer()
-    text_file = open(os.path.join(slide.FILTER_HTML_DIR, "filters.html"), "w")
-    text_file.write(html)
-    text_file.close()
-  else:
-    slide_nums = set()
-    for key in html_page_info:
-      slide_num = math.floor(key / 1000)
-      slide_nums.add(slide_num)
-    slide_nums = sorted(list(slide_nums))
-    total_len = len(slide_nums)
-    page_size = slide.FILTER_PAGINATION_SIZE
-    num_pages = math.ceil(total_len / page_size)
-
-    for page_num in range(1, num_pages + 1):
-      start_index = (page_num - 1) * page_size
-      end_index = (page_num * page_size) if (page_num < num_pages) else total_len
-      page_slide_nums = slide_nums[start_index:end_index]
-
-      html = ""
-      html += html_header("Filtered Images, Page %d" % page_num)
-
-      html += "  <div style=\"font-size: 20px\">"
-      if page_num > 1:
-        if page_num == 2:
-          html += "<a href=\"filters.html\">&lt;</a> "
-        else:
-          html += "<a href=\"filters-%d.html\">&lt;</a> " % (page_num - 1)
-      html += "Page %d" % page_num
-      if page_num < num_pages:
-        html += " <a href=\"filters-%d.html\">&gt;</a> " % (page_num + 1)
-      html += "</div>\n"
-
-      html += "  <table>\n"
-      for slide_num in page_slide_nums:
-        html += "  <tr>\n"
-        filter_num = 1
-
-        lookup_key = slide_num * 1000 + filter_num
-        while lookup_key in html_page_info:
-          value = html_page_info[lookup_key]
-          html += image_cell(value[0], value[1], value[2], value[3])
-          lookup_key += 1
-        html += "  </tr>\n"
-
-      html += "  </table>\n"
-
-      html += html_footer()
-      if page_num == 1:
-        text_file = open(os.path.join(slide.FILTER_HTML_DIR, "filters.html"), "w")
-      else:
-        text_file = open(os.path.join(slide.FILTER_HTML_DIR, "filters-%d.html" % page_num), "w")
-      text_file.write(html)
-      text_file.close()
+  return filtered_np_img
 
 
 def apply_filters_to_image_list(image_num_list, save, display):
@@ -681,13 +524,11 @@ def apply_filters_to_image_list(image_num_list, save, display):
     display: If True, display filtered images to screen.
 
   Returns:
-    Tuple consisting of 1) a list of image numbers, and 2) a dictionary of image filter information.
+    List of image numbers that were filtered.
   """
-  html_page_info = dict()
   for slide_num in image_num_list:
-    _, info = apply_filters_to_image(slide_num, save, display=display)
-    html_page_info.update(info)
-  return image_num_list, html_page_info
+    apply_filters_to_image(slide_num, save, display=display)
+  return image_num_list
 
 
 def apply_filters_to_image_range(start_ind, end_ind, save, display):
@@ -701,24 +542,20 @@ def apply_filters_to_image_range(start_ind, end_ind, save, display):
     display: If True, display filtered images to screen.
 
   Returns:
-    Tuple consisting of 1) staring index of slides converted to images, 2) ending index of slides converted to images,
-    and 3) a dictionary of image filter information.
+    Tuple consisting of the starting and ending index of slides that were filtered.
   """
-  html_page_info = dict()
   for slide_num in range(start_ind, end_ind + 1):
-    _, info = apply_filters_to_image(slide_num, save=save, display=display)
-    html_page_info.update(info)
-  return start_ind, end_ind, html_page_info
+    apply_filters_to_image(slide_num, save=save, display=display)
+  return start_ind, end_ind
 
 
-def multiprocess_apply_filters_to_images(save=True, display=False, html=True, image_num_list=None):
+def multiprocess_apply_filters_to_images(save=True, display=False, image_num_list=None):
   """
   Apply a set of filters to all training images using multiple processes (one process per core).
 
   Args:
     save: If True, save filtered images.
     display: If True, display filtered images to screen (multiprocessed display not recommended).
-    html: If True, generate HTML page to display filtered images.
     image_num_list: Optionally specify a list of image slide numbers.
   """
   timer = Time()
@@ -768,22 +605,16 @@ def multiprocess_apply_filters_to_images(save=True, display=False, html=True, im
     else:
       results.append(pool.apply_async(apply_filters_to_image_range, t))
 
-  html_page_info = dict()
   for result in results:
     if image_num_list is not None:
-      (image_nums, html_page_info_res) = result.get()
-      html_page_info.update(html_page_info_res)
+      image_nums = result.get()
       print("Done filtering slides: %s" % image_nums)
     else:
-      (start_ind, end_ind, html_page_info_res) = result.get()
-      html_page_info.update(html_page_info_res)
+      (start_ind, end_ind) = result.get()
       if (start_ind == end_ind):
         print("Done filtering slide %d" % start_ind)
       else:
         print("Done filtering slides %d through %d" % (start_ind, end_ind))
-
-  if html:
-    generate_filter_html_result(html_page_info)
 
   print("Time to apply filters to all images (multiprocess): %s\n" % str(timer.elapsed()))
 

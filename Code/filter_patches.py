@@ -145,16 +145,12 @@ def filter_grays(rgb, tolerance=15, output_type="bool"):
 
 
 
-def apply_image_filters(np_img, save=True, display=False):
+def apply_image_filters(np_img):
   """
-  Apply filters to image as NumPy array and optionally save and/or display filtered images.
+  Apply filters to an image represented as a NumPy array.
 
   Args:
     np_img: Image as NumPy array.
-    slide_num: The slide number (used for saving/displaying).
-    info: Dictionary of slide information (used for HTML display).
-    save: If True, save image.
-    display: If True, display image.
 
   Returns:
     Resulting filtered image as a NumPy array.
@@ -201,7 +197,7 @@ def apply_filters_to_image(image, save_dir, save, display=False):
 
   image = Image.open(image_path)
   np_orig = np.asarray(image)
-  filtered_np_img = apply_image_filters(np_orig, save, display=display)
+  filtered_np_img = apply_image_filters(np_orig)
 
   if save:
   	pil_img = util.np_to_pil(filtered_np_img)
@@ -245,14 +241,13 @@ def apply_filters_to_image_list_multiprocess(image_list, save_dir, save, display
 
 
 
-def multiprocess_apply_filters_to_images(folder, save=False, display=False, html=False, image_num_list=None):
+def multiprocess_apply_filters_to_images(folder, save=False, display=False, image_num_list=None):
   """
   Apply a set of filters to all training images using multiple processes (one process per core).
 
   Args:
     save: If True, save filtered images.
     display: If True, display filtered images to screen (multiprocessed display not recommended).
-    html: If True, generate HTML page to display filtered images.
     image_num_list: Optionally specify a list of image slide numbers.
   """
 

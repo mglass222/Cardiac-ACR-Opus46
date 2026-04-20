@@ -141,7 +141,22 @@ Cardiac-ACR-Opus46/
 │   ├── annotate_svs.py               XML annotation generation for SVS viewers
 │   │
 │   ├── import_openslide.py           Platform-aware OpenSlide import
-│   └── util.py                       Low-level image/array utilities (from DeepHistoPath)
+│   ├── util.py                       Low-level image/array utilities (from DeepHistoPath)
+│   │
+│   ├── training/                     Neural network training pipeline
+│   │   ├── extract_patches.py        Extract labeled patches from annotated WSIs
+│   │   ├── data_utils.py             Dataset helpers, class weights, dataloaders
+│   │   ├── model.py                  ResNet-50 factory + staged unfreezing
+│   │   ├── train.py                  Two-stage training (FC-only → fine-tune)
+│   │   └── cross_validation.py       5-fold cross-validation
+│   │
+│   └── stats/                        Statistical analysis scripts
+│       ├── _stats_utils.py           Shared helpers for slide-level stats
+│       ├── dump_training_predictions.py
+│       │                             Run trained model over training patches
+│       ├── patch_level_stats.py      6-class confusion matrix + per-class ROC
+│       ├── training_set_stats.py     Slide-level threshold-grid + 2R ROC (excl. AMR)
+│       └── test_set_stats.py         Slide-level threshold-grid + 2R ROC + 4-class
 │
 ├── data/                             All input/output data (not tracked in git)
 ├── fonts/                            Font files for tile visualizations
@@ -149,6 +164,57 @@ Cardiac-ACR-Opus46/
 ├── README.md
 └── DEVELOPMENT_LOG.md                Code trace, cleanup history, and refactor notes
 ```
+
+## Training and Statistics
+
+The primary pipeline handles inference only. Two additional subpackages
+under `Code/` support model training and post-hoc evaluation.
+
+### `Code/training/` — Neural network training
+
+Two-stage transfer learning on top of an ImageNet-pretrained ResNet-50:
+
+1. **FC-only stage** — freeze the backbone, train a new
+   `Dropout(0.5) → Linear` head until the FC+BN-only loss plateaus.
+2. **Fine-tune stage** — unlock `layer3` and `layer4` with staged
+   learning rates (`lr`, `lr/9`, `lr/3`) and continue training.
+
+Class imbalance is handled with `CrossEntropyLoss(weight=class_weights)`
+using sklearn's balanced formula. Augmentation is `ColorJitter` +
+`RandomRotation` on the training split only.
+
+```bash
+# One-off patch extraction from annotated SVS files
+python -m training.extract_patches
+
+# Main training entry point — writes resnet50_ft into MODEL_DIR
+python -m training.train
+
+# 5-fold cross-validation
+python -m training.cross_validation
+```
+
+### `Code/stats/` — Evaluation
+
+The stats scripts consume the trained model and the per-threshold
+slide-classifier outputs to produce confusion matrices and ROC curves:
+
+```bash
+# Dump patch-level predictions across the training set (feeds the next script)
+python -m stats.dump_training_predictions
+
+# 6-class patch-level confusion matrix + one-vs-rest ROC curves
+python -m stats.patch_level_stats
+
+# Slide-level threshold-grid + 2R-vs-not-2R ROC (excludes AMR slides)
+python -m stats.training_set_stats
+
+# Slide-level threshold-grid + 2R ROC + 4-class confusion (test set)
+python -m stats.test_set_stats
+```
+
+All four stats scripts share slide-level helpers in `_stats_utils.py`
+and read their paths from `cardiac_globals.py`.
 
 ## Configuration
 

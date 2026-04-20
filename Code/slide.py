@@ -71,10 +71,6 @@ FILTER_SUFFIX = ""  # Example: "filter-"
 FILTER_RESULT_TEXT = "filtered"
 FILTER_DIR = os.path.join(BASE_DIR, "filter_" + DEST_TRAIN_EXT)
 FILTER_THUMBNAIL_DIR = os.path.join(BASE_DIR, "filter_thumbnail_" + THUMBNAIL_EXT)
-FILTER_PAGINATION_SIZE = 50
-FILTER_PAGINATE = True
-FILTER_HTML_DIR = BASE_DIR
-
 TILE_SUMMARY_DIR = os.path.join(BASE_DIR, "tile_summary_" + DEST_TRAIN_EXT)
 TILE_SUMMARY_ON_ORIGINAL_DIR = os.path.join(BASE_DIR, "tile_summary_on_original_" + DEST_TRAIN_EXT)
 TILE_SUMMARY_SUFFIX = "tile_summary"
@@ -241,77 +237,6 @@ def get_training_thumbnail_path(slide_number, large_w=None, large_h=None, small_
       SCALE_FACTOR) + "x-" + DEST_TRAIN_SUFFIX + str(
       large_w) + "x" + str(large_h) + "-" + str(small_w) + "x" + str(small_h) + "." + THUMBNAIL_EXT)
   return img_path
-
-
-def get_filter_image_path(slide_number, filter_number, filter_name_info):
-  """
-  Convert slide number, filter number, and text to a path to a filter image file.
-
-  Example:
-    5, 1, "rgb" -> ../data/filter_png/TUPAC-TR-005-001-rgb.png
-
-  Args:
-    slide_number: The slide number.
-    filter_number: The filter number.
-    filter_name_info: Descriptive text describing filter.
-
-  Returns:
-    Path to the filter image file.
-  """
-  dir = FILTER_DIR
-  if not os.path.exists(dir):
-    os.makedirs(dir)
-  img_path = os.path.join(dir, get_filter_image_filename(slide_number, filter_number, filter_name_info))
-  return img_path
-
-
-def get_filter_thumbnail_path(slide_number, filter_number, filter_name_info):
-  """
-  Convert slide number, filter number, and text to a path to a filter thumbnail file.
-
-  Example:
-    5, 1, "rgb" -> ../data/filter_thumbnail_jpg/TUPAC-TR-005-001-rgb.jpg
-
-  Args:
-    slide_number: The slide number.
-    filter_number: The filter number.
-    filter_name_info: Descriptive text describing filter.
-
-  Returns:
-    Path to the filter thumbnail file.
-  """
-  dir = FILTER_THUMBNAIL_DIR
-  if not os.path.exists(dir):
-    os.makedirs(dir)
-  img_path = os.path.join(dir, get_filter_image_filename(slide_number, filter_number, filter_name_info, thumbnail=True))
-  return img_path
-
-
-def get_filter_image_filename(slide_number, filter_number, filter_name_info, thumbnail=False):
-  """
-  Convert slide number, filter number, and text to a filter file name.
-
-  Example:
-    5, 1, "rgb", False -> TUPAC-TR-005-001-rgb.png
-    5, 1, "rgb", True -> TUPAC-TR-005-001-rgb.jpg
-
-  Args:
-    slide_number: The slide number.
-    filter_number: The filter number.
-    filter_name_info: Descriptive text describing filter.
-    thumbnail: If True, produce thumbnail filename.
-
-  Returns:
-    The filter image or thumbnail file name.
-  """
-  if thumbnail:
-    ext = THUMBNAIL_EXT
-  else:
-    ext = DEST_TRAIN_EXT
-  padded_sl_num = str(slide_number).zfill(3)
-  padded_fi_num = str(filter_number).zfill(3)
-  img_filename = TRAIN_PREFIX + padded_sl_num + "-" + padded_fi_num + "-" + FILTER_SUFFIX + filter_name_info + "." + ext
-  return img_filename
 
 
 def get_tile_summary_image_path(slide_number):

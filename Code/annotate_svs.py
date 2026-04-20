@@ -5,15 +5,10 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 
-import os
-import time
 from os import listdir
-from os.path import isfile, isdir, join
-from pathlib import Path
 
 import re
 import pickle
-import numpy as np
 
 import cardiac_globals as cg
 import cardiac_utils as utils
@@ -21,9 +16,7 @@ import cardiac_utils as utils
 
 
 def annotate_slide(slide_number):
-    
-    extracted_slidename = get_extracted_slide_name(slide_number)
-    
+
     xmlfilename = cg.TEST_SLIDE_ANNOTATIONS_DIR + str(slide_number) + ".xml"
 
     utils.make_directory(cg.TEST_SLIDE_ANNOTATIONS_DIR)
@@ -162,7 +155,7 @@ def update_xml_file(root, current_dict, annotation_id, region_id):
                 if annotations[j].get('Name') == dx:
                     annotation = annotations[j]
             
-        annotation = add_region(annotation, dx, region_id, patchname)
+        annotation = add_region(annotation, region_id, patchname)
         region_id  = str(int(region_id) + 1)
                 
     return region_id     
@@ -230,7 +223,7 @@ def initialize_annotation_type(root, dx, color, annotation_id):
     
 
 
-def add_region(annotation, dx, region_id, patchname):
+def add_region(annotation, region_id, patchname):
     
     Regions = annotation.find('.//Regions')
     Region = ET.SubElement(Regions, "Region")
@@ -315,20 +308,6 @@ def get_coords(patchname):
     
     return small_x, small_y, large_x, large_y
 
-
-
-def get_extracted_slide_name(slide_number):
-    files = listdir(cg.PNG_SLIDE_DIR)
-
-    return_file = None
-    for file in files:
-        if file.split(".")[0].split("-")[0] == str(slide_number):
-            return_file = file
-            
-    return return_file
-
-
-
 def get_coords_from_name(name):
     
     # Get coordinates from filename
@@ -348,8 +327,6 @@ def main(slide_number):
         
 
 if __name__ == "__main__": main()
-
-
 
 
 

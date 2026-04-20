@@ -25,9 +25,7 @@ from os import listdir
 from os.path import isfile
 
 import torch
-import torchvision
-from torch import optim, cuda
-from torchvision import datasets, models, transforms
+from torchvision import transforms
 
 import numpy as np
 from PIL import Image
@@ -37,23 +35,14 @@ import pickle
 # size that nn is expecting
 INPUT_SIZE = cg.ANNOTATION_SIZE
 
-# how much to scale down original image (default = 40)
-SCALE_FACTOR = cg.SCALE_FACTOR
-
 # minimum probability required for model predictions to count
 PREDICTION_THRESHOLD = cg.PREDICTION_THRESHOLD
 
 # ### Main Source / Output Folders ###
-BASE_DIR = cg.BASE_DIR
-TEST_SLIDE_DIR = cg.TEST_SLIDE_DIR
-PNG_SLIDE_DIR = cg.PNG_SLIDE_DIR
-TILE_DATA_DIR = cg.TILE_DATA_DIR
-TILE_DIR = cg.TILE_DIR
 SPLIT_TILE_DIR = cg.SPLIT_TILE_DIR
 MODEL_DIR = cg.MODEL_DIR
 SAVED_DATABASE_DIR = cg.SAVED_DATABASE_DIR
 SLIDE_DX_DIR = cg.SLIDE_DX_DIR
-FILTERED_IMAGE_DIR = cg.FILTERED_IMAGE_DIR
 
 
 def check_filesystem():
@@ -185,8 +174,6 @@ def threshold_predictions(slide_number):
         model_predictions_dict = pickle.load(handle)
 
     filtered_dict = {}
-    probabilities_dict = {}
-
     for key,value in model_predictions_dict.items():
         # get rid of predictions below threshold
         pred_mask = np.asarray(value) > PREDICTION_THRESHOLD

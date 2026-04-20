@@ -705,7 +705,7 @@ def score_tiles(slide_num, np_img=None, dimensions=None, small_tile_in_tile=Fals
     if (o_r_e - o_r_s) > ROW_TILE_SIZE:
       o_r_e -= 1
 
-    score, color_factor, s_and_v_factor, quantity_factor = score_tile(np_tile, t_p, slide_num, r, c)
+    score, color_factor, s_and_v_factor, quantity_factor = score_tile(np_tile, t_p)
 
     np_scaled_tile = np_tile if small_tile_in_tile else None
     tile = Tile(tile_sum, slide_num, np_scaled_tile, count, r, c, r_s, r_e, c_s, c_e, o_r_s, o_r_e, o_c_s,
@@ -727,16 +727,13 @@ def score_tiles(slide_num, np_img=None, dimensions=None, small_tile_in_tile=Fals
   return tile_sum
 
 
-def score_tile(np_tile, tissue_percent, slide_num, row, col):
+def score_tile(np_tile, tissue_percent):
   """
   Score tile based on tissue percentage, color factor, saturation/value factor, and tissue quantity factor.
 
   Args:
     np_tile: Tile as NumPy array.
     tissue_percent: The percentage of the tile judged to be tissue.
-    slide_num: Slide number.
-    row: Tile row.
-    col: Tile column.
 
   Returns tuple consisting of score, color factor, saturation/value factor, and tissue quantity factor.
   """
@@ -843,7 +840,7 @@ def image_range_to_tiles(start_ind, end_ind, display=False, save_summary=True, s
 
 
 def multiprocess_filtered_images_to_tiles(display=False, save_summary=False, save_data=False, save_top_tiles=True,
-                                          html=False, image_num_list=None):
+                                          image_num_list=None):
   """
   Generate tile summaries and tiles for all training images using multiple processes (one process per core).
 
@@ -852,7 +849,6 @@ def multiprocess_filtered_images_to_tiles(display=False, save_summary=False, sav
     save_summary: If True, save tile summary images.
     save_data: If True, save tile data to csv file.
     save_top_tiles: If True, save top tiles to files.
-    html: If True, generate HTML page to display tiled images.
     image_num_list: Optionally specify a list of image slide numbers.
   """
   timer = Time()
