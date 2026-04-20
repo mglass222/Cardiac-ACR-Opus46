@@ -8,7 +8,7 @@ from os.path import isfile
 import pickle
 import re
 
-import cardiac_globals as cg
+from cardiac_acr import cardiac_globals as cg
 
 
 def make_directory(directory):
@@ -135,7 +135,7 @@ def get_png_slide_name(slide_number):
 def get_coords_from_name(name):
 
     # Get coordinates from filename
-    m = re.match(".*-x([\d]*)-y([\d]*).*\..*", name)
+    m = re.match(r".*-x([\d]*)-y([\d]*).*\..*", name)
     x_coord = int(m.group(1))
     y_coord = int(m.group(2))
 
@@ -145,7 +145,7 @@ def get_coords_from_name(name):
 def parse_dimensions_from_image_filename(filename):
 
     # Get coordinates from filename
-    m = re.match(".*-([\d]*)x([\d]*)-([\d]*)x([\d]*).*\..*", filename)
+    m = re.match(r".*-([\d]*)x([\d]*)-([\d]*)x([\d]*).*\..*", filename)
     large_w = int(m.group(1))
     large_h = int(m.group(2))
     small_w = int(m.group(3))
@@ -183,7 +183,7 @@ def get_patchname(tile_name, slide_num, x_start, y_start):
     """
 
     # Get large_x and large_y coords from the tile we are processing
-    m = re.match(".*-r([\d]*)-c([\d]*)-x([\d]*)-y([\d]*).*\..*", tile_name)
+    m = re.match(r".*-r([\d]*)-c([\d]*)-x([\d]*)-y([\d]*).*\..*", tile_name)
 
     large_x = int(m.group(3)) + x_start
     large_y = int(m.group(4)) + y_start

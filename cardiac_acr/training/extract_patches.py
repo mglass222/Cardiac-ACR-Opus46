@@ -20,7 +20,6 @@ Ported from the ``Extract_Patches_V5.ipynb`` notebook.
 
 import os
 import pickle
-import sys
 import time
 import xml.etree.ElementTree as ET
 from os import listdir
@@ -28,13 +27,8 @@ from os.path import isdir
 
 import numpy as np
 
-# Allow imports from the parent ``Code/`` directory so this script can
-# run directly (``python Code/training/extract_patches.py``).
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
-import import_openslide  # noqa: E402,F401  — platform-aware openslide import
-import openslide  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr.openslide_compat import openslide
 
 
 # Default class labels to pull out of each XML file. Each value must match

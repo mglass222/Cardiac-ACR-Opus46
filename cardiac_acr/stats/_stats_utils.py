@@ -18,7 +18,6 @@ import csv
 import math
 import os
 import pickle
-import sys
 from os import listdir
 
 import numpy as np
@@ -31,10 +30,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 
-# Allow imports from the parent ``Code/`` directory.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
 
 
 # Every diagnosis label that the neural network / pathologist can emit.

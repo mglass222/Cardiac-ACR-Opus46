@@ -22,17 +22,8 @@ Ported from the first half of ``Cardiac_ACR_Pytorch_Training_Set_Stats_V6.ipynb`
 (cells 1-10). All duplicated helpers live in :mod:`_stats_utils`.
 """
 
-import os
-import sys
-
-# Allow imports from the parent ``Code/`` directory and from this
-# package (so ``_stats_utils`` resolves regardless of how we're run).
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(_THIS_DIR))
-sys.path.insert(0, _THIS_DIR)
-
-import cardiac_globals as cg  # noqa: E402
-import _stats_utils as stats_utils  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr.stats import _stats_utils as stats_utils
 
 
 # Training set excludes AMR slides (numeric id >= 279) from both

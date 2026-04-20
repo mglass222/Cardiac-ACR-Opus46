@@ -15,7 +15,6 @@ that were hard-coded to ``D:\\Cardiac_ACR\\...`` now flow through
 """
 
 import os
-import sys
 from os import listdir
 from os.path import isdir, join
 
@@ -23,10 +22,7 @@ import cv2
 import torch
 from torchvision import datasets, transforms
 
-# Allow imports from the parent ``Code/`` directory.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
 
 
 def count_classes(train_dir=None):

@@ -61,22 +61,22 @@ COMBINED_BOXES_DIR = os.path.join(SEGMENTED_DIR, "Combined_Boxes")
 
 ##################### TRAINING / CROSS-VALIDATION / STATS ##############################
 
-### Patch library (class-indexed PNGs produced by Code/training/extract_patches.py) ###
+### Patch library (class-indexed PNGs produced by cardiac_acr/training/extract_patches.py) ###
 PATCH_DIR = os.path.join(DATA_DIR, "Patches")
 OPENSLIDE_DIR = os.path.join(PATCH_DIR, "Openslide_Output")
 
-### Train/Val split used by Code/training/train.py ###
+### Train/Val split used by cardiac_acr/training/train.py ###
 TRAINING_PATCH_DIR = os.path.join(PATCH_DIR, "Training_Sets")
 TRAIN_DIR = os.path.join(TRAINING_PATCH_DIR, "Training")
 VALID_DIR = os.path.join(TRAINING_PATCH_DIR, "Validation")
 
-### 5-fold cross validation workspace (Code/training/cross_validation.py) ###
+### 5-fold cross validation workspace (cardiac_acr/training/cross_validation.py) ###
 CROSS_VAL_DIR = os.path.join(DATA_DIR, "Cross_Validation")
 CROSS_VAL_TRAIN_DIR = os.path.join(CROSS_VAL_DIR, "Training_Sets", "Training")
 CROSS_VAL_VALID_DIR = os.path.join(CROSS_VAL_DIR, "Training_Sets", "Validation")
 CROSS_VAL_MODEL_DIR = os.path.join(CROSS_VAL_DIR, "Saved_Models")
 
-### Per-threshold slide-level CSV outputs consumed by Code/stats/ ###
+### Per-threshold slide-level CSV outputs consumed by cardiac_acr/stats/ ###
 TRAIN_SET_ANALYSIS_DIR = os.path.join(SLIDE_DX_DIR + "_Training_Set_Analysis")
 TEST_SET_ANALYSIS_DIR = os.path.join(SLIDE_DX_DIR + "_Test_Set_Analysis")
 
@@ -87,7 +87,7 @@ TEST_DX_CSV = os.path.join(SPREADSHEETS_DIR, "Test_Set_Pathologist_Dx.csv")
 TRAIN_SUMMARY_CSV = os.path.join(SPREADSHEETS_DIR, "Training_Set_Threshold_Analysis.csv")
 TEST_SUMMARY_CSV = os.path.join(SPREADSHEETS_DIR, "Test_Set_Threshold_Analysis.csv")
 
-### Patch-level predictions dumped by Code/stats/dump_training_predictions.py ###
+### Patch-level predictions dumped by cardiac_acr/stats/dump_training_predictions.py ###
 TRAIN_SET_PREDICTIONS_PICKLE = os.path.join(
     SAVED_DATABASE_DIR, "Training_Set_Model_Predictions.pickle"
 )

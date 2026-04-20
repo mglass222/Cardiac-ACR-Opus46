@@ -1,12 +1,12 @@
 # WSI Mainline: Used Modules and Functions
 
-Scope: static trace of the executable path rooted at `Code/cardiac_acr_diagnose_wsi.py`.
+Scope: static trace of the executable path rooted at `cardiac_acr/cardiac_acr_diagnose_wsi.py`.
 
 This file focuses on project-local modules and functions that are actually reached by the mainline program, plus a short list of startup side effects and cleanup observations that matter for dead-code removal.
 
 ## Entry Script
 
-### `Code/cardiac_acr_diagnose_wsi.py`
+### `cardiac_acr/cardiac_acr_diagnose_wsi.py`
 
 Used startup/global flow:
 
@@ -40,19 +40,20 @@ Used imported local modules from this file:
 - `count_1r2`
 - `annotate_png`
 - `annotate_svs`
-- `import_openslide` for import-time OpenSlide setup side effect
+- `openslide_compat` for centralized OpenSlide import and Windows DLL-path setup
 
 ## Project Modules Reached by Mainline
 
-### `Code/import_openslide.py`
+### `cardiac_acr/openslide_compat.py`
 
-Used at import time only:
+Used by any module that needs OpenSlide:
 
+- module top-level logic registers the Windows DLL directory when configured
 - module top-level import logic loads `openslide`
 - uses `cg.OPENSLIDE_BIN_PATH`
-- enables Windows DLL path setup when needed
+- re-exports `openslide` and `OpenSlideError`
 
-### `Code/cardiac_globals.py`
+### `cardiac_acr/cardiac_globals.py`
 
 Used as a constants module. Mainline-relevant constants include:
 
@@ -81,7 +82,7 @@ Used as a constants module. Mainline-relevant constants include:
 - `_1R2_DILATION_ITERS`
 - `FONT_PATH`
 
-### `Code/cardiac_utils.py`
+### `cardiac_acr/cardiac_utils.py`
 
 Functions reached from mainline:
 
@@ -98,7 +99,7 @@ Functions reached from mainline:
 - `get_patchname(tile_name, slide_num, x_start, y_start)` line 179
 - `make_directory(directory)` line 14
 
-### `Code/slide.py`
+### `cardiac_acr/slide.py`
 
 Functions reached from mainline:
 
@@ -131,7 +132,7 @@ Functions reached from mainline:
 - `get_top_tiles_image_filename(slide_number, thumbnail=False)` line 462
 - `get_tile_data_filename(slide_number)` line 528
 
-### `Code/filter.py`
+### `cardiac_acr/filter.py`
 
 Functions reached from mainline:
 
@@ -162,7 +163,7 @@ Referenced by `tiles.py` but missing from the current file:
 
 These names are on the mainline scoring path and should be resolved before cleanup work.
 
-### `Code/tiles.py`
+### `cardiac_acr/tiles.py`
 
 Functions/classes reached from mainline:
 
@@ -207,7 +208,7 @@ Behavior note:
 
 - `summary_and_tiles()` forcibly resets `save_top_tiles = True` inside the function, so top-tile extraction still runs even though the caller passes `save_top_tiles=False`.
 
-### `Code/tileset_utils.py`
+### `cardiac_acr/tileset_utils.py`
 
 Functions reached from mainline:
 
@@ -215,7 +216,7 @@ Functions reached from mainline:
 - `process_tiles(slide_num)` line 49
 - `tiles_to_patches(tile_list, slide_num)` line 109
 
-### `Code/filter_patches.py`
+### `cardiac_acr/filter_patches.py`
 
 Functions reached from mainline:
 
@@ -228,7 +229,7 @@ Functions reached from mainline:
 - `tissue_percent(np_img)` line 55
 - `mask_percent(np_img)` line 35
 
-### `Code/count_1r2.py`
+### `cardiac_acr/count_1r2.py`
 
 Functions reached from mainline:
 
@@ -250,7 +251,7 @@ Imported but not reached on the current mainline:
 
 - `pad_image(...)` line 167
 
-### `Code/annotate_png.py`
+### `cardiac_acr/annotate_png.py`
 
 Functions reached from mainline:
 
@@ -258,7 +259,7 @@ Functions reached from mainline:
 - `annotate_png(slide_number)` line 16
 - `get_color(value)` line 97
 
-### `Code/annotate_svs.py`
+### `cardiac_acr/annotate_svs.py`
 
 Functions reached from mainline:
 
@@ -279,7 +280,7 @@ Behavior note:
 
 - `get_extracted_slide_name(slide_number)` is called inside `annotate_slide()` but its return value is never used.
 
-### `Code/util.py`
+### `cardiac_acr/util.py`
 
 Functions/classes reached from mainline:
 
@@ -308,7 +309,7 @@ High-value external dependencies on the execution path:
 
 These are useful when the next step is dead-code removal:
 
-- The mainline path definitely uses `slide`, `filter`, `tiles`, `tileset_utils`, `filter_patches`, `cardiac_utils`, `count_1r2`, `annotate_png`, `annotate_svs`, `util`, `cardiac_globals`, and `import_openslide`.
+- The mainline path definitely uses `slide`, `filter`, `tiles`, `tileset_utils`, `filter_patches`, `cardiac_utils`, `count_1r2`, `annotate_png`, `annotate_svs`, `util`, `cardiac_globals`, and `openslide_compat`.
 - `cardiac_acr_diagnose_wsi.py` appears to carry unused imports:
   - `torchvision`
   - `optim`

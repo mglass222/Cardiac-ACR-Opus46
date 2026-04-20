@@ -21,14 +21,13 @@ import numpy as np
 import os
 
 
-import slide
-import util
-from util import Time
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
+from cardiac_acr import slide
+from cardiac_acr import util
+from cardiac_acr.util import Time
 
 from PIL import Image
-
-import cardiac_globals as cg 
-import cardiac_utils as utils 
 
 
 

@@ -5,18 +5,16 @@
 
 
 # import openslide
-import cardiac_globals as cg
-import filter
-import slide
-import tiles
-import tileset_utils
-import filter_patches
-import cardiac_utils as utils
-import count_1r2
-import annotate_svs
-import annotate_png
-
-import import_openslide
+from cardiac_acr import annotate_png
+from cardiac_acr import annotate_svs
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
+from cardiac_acr import count_1r2
+from cardiac_acr import filter
+from cardiac_acr import filter_patches
+from cardiac_acr import slide
+from cardiac_acr import tiles
+from cardiac_acr import tileset_utils
 
 
 # Import System Modules, etc.

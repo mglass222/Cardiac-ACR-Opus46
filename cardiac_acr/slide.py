@@ -14,29 +14,18 @@
 #
 # ------------------------------------------------------------------------
 
-import cardiac_globals as cg
 import os
 import glob
 import math
 import multiprocessing
 
-# import openslide
-# import import_openslide
-
-
-OPENSLIDE_PATH = cg.OPENSLIDE_BIN_PATH
-if hasattr(os, 'add_dll_directory') and OPENSLIDE_PATH:
-    with os.add_dll_directory(OPENSLIDE_PATH):
-        import openslide
-else:
-    import openslide
-
-from openslide import OpenSlideError
 import PIL
 from PIL import Image
 import re
-import util
-from util import Time
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr.openslide_compat import OpenSlideError, openslide
+from cardiac_acr import util
+from cardiac_acr.util import Time
 
 ############################################
 
@@ -549,7 +538,7 @@ def parse_dimensions_from_image_filename(filename):
   Returns:
     Tuple consisting of the original width, original height, the converted width, and the converted height.
   """
-  m = re.match(".*-([\d]*)x([\d]*)-([\d]*)x([\d]*).*\..*", filename)
+  m = re.match(r".*-([\d]*)x([\d]*)-([\d]*)x([\d]*).*\..*", filename)
   large_w = int(m.group(1))
   large_h = int(m.group(2))
   small_w = int(m.group(3))

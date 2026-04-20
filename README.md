@@ -72,12 +72,91 @@ pip install torch torchvision openslide-python opencv-python numpy Pillow scikit
 
 ### OpenSlide
 
-- **macOS**: `brew install openslide`
-- **Linux**: `apt-get install openslide-tools` or equivalent
-- **Windows**: Download OpenSlide binaries and set the environment variable:
-  ```
-  set OPENSLIDE_BIN_PATH=C:\path\to\openslide\bin
-  ```
+OpenSlide has two parts:
+
+1. The native OpenSlide library installed on your operating system
+2. The Python bindings installed with `pip install openslide-python`
+
+Install both pieces for your platform:
+
+#### macOS
+
+Install the native library with Homebrew:
+
+```bash
+brew install openslide
+```
+
+Then install the Python bindings:
+
+```bash
+pip install openslide-python
+```
+
+#### Linux
+
+Install the native library with your package manager. On Debian/Ubuntu:
+
+```bash
+sudo apt-get update
+sudo apt-get install libopenslide0 openslide-tools
+```
+
+Then install the Python bindings:
+
+```bash
+pip install openslide-python
+```
+
+If you are using another Linux distribution, install the equivalent
+OpenSlide system package for your distro, then install
+`openslide-python` with `pip`.
+
+#### Windows
+
+1. Install the Python bindings:
+
+```powershell
+pip install openslide-python
+```
+
+2. Download the OpenSlide Windows binaries from the OpenSlide project.
+3. Extract them somewhere stable, for example:
+
+```text
+C:\openslide\
+```
+
+4. Set `OPENSLIDE_BIN_PATH` to the extracted `bin` directory:
+
+```powershell
+$env:OPENSLIDE_BIN_PATH="C:\openslide\bin"
+```
+
+For Command Prompt instead of PowerShell:
+
+```bat
+set OPENSLIDE_BIN_PATH=C:\openslide\bin
+```
+
+If you want the variable to persist across terminal sessions, set it in
+your system environment settings instead of only in the current shell.
+
+To verify the OpenSlide runtime before running the full pipeline:
+
+```bash
+python -m cardiac_acr.check_dependencies
+```
+
+This command checks the core inference dependencies, reports
+platform-specific OpenSlide setup status, and prints clearer error
+messages if a Python package or native library is missing.
+
+Common setup failures:
+
+- `No module named 'openslide'`: install `openslide-python`
+- Native-library load error on macOS/Linux: install the system OpenSlide package
+- Native-library load error on Windows: verify `OPENSLIDE_BIN_PATH` points to the folder containing the OpenSlide DLLs
 
 ## Setup
 
@@ -111,7 +190,7 @@ Copy `Arial.ttf` from your system fonts, or use any compatible `.ttf` font.
 ### 4. Run
 
 ```bash
-python Code/cardiac_acr_diagnose_wsi.py
+python -m cardiac_acr
 ```
 
 The pipeline will:
@@ -125,8 +204,9 @@ The pipeline will:
 ```
 Cardiac-ACR-Opus46/
 │
-├── Code/
-│   ├── cardiac_acr_diagnose_wsi.py   Main entry point — runs the full pipeline
+├── cardiac_acr/
+│   ├── __main__.py                   Package entry point for `python -m cardiac_acr`
+│   ├── cardiac_acr_diagnose_wsi.py   Main inference pipeline
 │   ├── cardiac_globals.py            Configuration — all paths and parameters
 │   ├── cardiac_utils.py              Shared utility functions
 │   │
@@ -140,7 +220,7 @@ Cardiac-ACR-Opus46/
 │   ├── annotate_png.py               Color-coded patch annotations on PNG slides
 │   ├── annotate_svs.py               XML annotation generation for SVS viewers
 │   │
-│   ├── import_openslide.py           Platform-aware OpenSlide import
+│   ├── openslide_compat.py           Centralized OpenSlide import + Windows DLL setup
 │   ├── util.py                       Low-level image/array utilities (from DeepHistoPath)
 │   │
 │   ├── training/                     Neural network training pipeline
@@ -171,9 +251,9 @@ repository root stays focused on source, data, and the primary readme.
 ## Training and Statistics
 
 The primary pipeline handles inference only. Two additional subpackages
-under `Code/` support model training and post-hoc evaluation.
+under `cardiac_acr/` support model training and post-hoc evaluation.
 
-### `Code/training/` — Neural network training
+### `cardiac_acr/training/` — Neural network training
 
 Two-stage transfer learning on top of an ImageNet-pretrained ResNet-50:
 
@@ -188,32 +268,32 @@ using sklearn's balanced formula. Augmentation is `ColorJitter` +
 
 ```bash
 # One-off patch extraction from annotated SVS files
-python -m training.extract_patches
+python -m cardiac_acr.training.extract_patches
 
 # Main training entry point — writes resnet50_ft into MODEL_DIR
-python -m training.train
+python -m cardiac_acr.training.train
 
 # 5-fold cross-validation
-python -m training.cross_validation
+python -m cardiac_acr.training.cross_validation
 ```
 
-### `Code/stats/` — Evaluation
+### `cardiac_acr/stats/` — Evaluation
 
 The stats scripts consume the trained model and the per-threshold
 slide-classifier outputs to produce confusion matrices and ROC curves:
 
 ```bash
 # Dump patch-level predictions across the training set (feeds the next script)
-python -m stats.dump_training_predictions
+python -m cardiac_acr.stats.dump_training_predictions
 
 # 6-class patch-level confusion matrix + one-vs-rest ROC curves
-python -m stats.patch_level_stats
+python -m cardiac_acr.stats.patch_level_stats
 
 # Slide-level threshold-grid + 2R-vs-not-2R ROC (excludes AMR slides)
-python -m stats.training_set_stats
+python -m cardiac_acr.stats.training_set_stats
 
 # Slide-level threshold-grid + 2R ROC + 4-class confusion (test set)
-python -m stats.test_set_stats
+python -m cardiac_acr.stats.test_set_stats
 ```
 
 All four stats scripts share slide-level helpers in `_stats_utils.py`
@@ -221,7 +301,7 @@ and read their paths from `cardiac_globals.py`.
 
 ## Configuration
 
-All configurable parameters are in `Code/cardiac_globals.py`:
+All configurable parameters are in `cardiac_acr/cardiac_globals.py`:
 
 | Parameter | Default | Description |
 |---|---|---|

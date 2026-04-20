@@ -121,7 +121,7 @@ All paths were hardcoded Windows paths (`D:\Cardiac_ACR\`, `E:\Cardiac_ACR\`, `C
 - **`OPENSLIDE_BIN_PATH`**: Now read from `OPENSLIDE_BIN_PATH` environment variable (empty by default; only needed on Windows).
 - **`count_1r2.py`**: Replaced 8 hardcoded paths with `cg.*` references from cardiac_globals.
 - **All files**: Replaced every `"\\"` concatenation with `os.path.join()`. Fixed `split("\\")[5]` filename extraction with `os.path.basename()`.
-- **`slide.py` / `import_openslide.py`**: OpenSlide import is now platform-aware (uses `add_dll_directory` only on Windows when path is set).
+- **`openslide_compat.py`**: OpenSlide import is now centralized and platform-aware (uses `add_dll_directory` only on Windows when path is set).
 - **`tiles.py`**: Font paths now reference `cg.FONT_PATH` instead of hardcoded Windows path.
 - **Main file**: Removed `sys.path.insert()` hack (unnecessary when all files are in same directory).
 
@@ -167,6 +167,13 @@ set OPENSLIDE_BIN_PATH=C:\Openslide_4003\bin
 - Moved all 13 `.py` source files into `Code/` subdirectory to separate source code from project docs and data
 - Updated `cardiac_globals.py` `PROJECT_ROOT` to go up one extra directory level (`Code/` -> project root)
 - Updated README.md project structure and run command to reflect new layout
+
+## Package Reorganization (2026-04-20)
+
+- Renamed `Code/` to `cardiac_acr/` so the source tree is a real Python package instead of a generic folder
+- Added `cardiac_acr/__init__.py` and `cardiac_acr/__main__.py` so the inference pipeline can run with `python -m cardiac_acr`
+- Updated training and stats modules to import through the package rather than mutating `sys.path`
+- Updated README.md and the trace docs to reflect the package layout and module-based run commands
 
 ## Notes
 - `annotate_svs.py` has its own internal `get_coords_from_name()` that duplicates the one in `cardiac_utils.py`

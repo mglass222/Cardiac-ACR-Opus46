@@ -19,8 +19,8 @@ from PIL import Image
 import time
 
 
-import cardiac_utils as utils
-import cardiac_globals as cg
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
 
 
 # make sure directory exists

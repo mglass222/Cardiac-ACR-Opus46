@@ -13,8 +13,8 @@ from scipy import ndimage
 from skimage import measure
 
 
-import cardiac_utils as utils
-import cardiac_globals as cg
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
 
 # make sure roi save directories exist
 if not os.path.isdir(cg.ROI_1R2_DIR): os.makedirs(cg.ROI_1R2_DIR)

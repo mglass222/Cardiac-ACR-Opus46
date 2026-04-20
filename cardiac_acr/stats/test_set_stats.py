@@ -24,21 +24,12 @@ Ported from ``Cardiac_ACR_Pytorch_Test_Set_Stats_V5.ipynb``. All
 duplicated helpers live in :mod:`_stats_utils`.
 """
 
-import os
-import sys
-
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, confusion_matrix
 
-# Allow imports from the parent ``Code/`` directory and from this
-# package (so ``_stats_utils`` resolves regardless of how we're run).
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(_THIS_DIR))
-sys.path.insert(0, _THIS_DIR)
-
-import cardiac_globals as cg  # noqa: E402
-import _stats_utils as stats_utils  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr.stats import _stats_utils as stats_utils
 
 
 # 4-class confusion-matrix labels in display order.

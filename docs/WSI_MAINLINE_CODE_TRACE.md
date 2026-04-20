@@ -1,12 +1,12 @@
 # WSI Mainline Code Trace
 
-Scope: start-to-finish trace of the executable path from `Code/cardiac_acr_diagnose_wsi.py`.
+Scope: start-to-finish trace of the executable path from `cardiac_acr/cardiac_acr_diagnose_wsi.py`.
 
 This is a static trace based on the current repository state. It is meant to support dead-code removal by showing what the program actually walks through when the script is executed.
 
 ## 1. Process Startup
 
-Entry file: `Code/cardiac_acr_diagnose_wsi.py`
+Entry file: `cardiac_acr/cardiac_acr_diagnose_wsi.py`
 
 Import and startup order:
 
@@ -21,19 +21,17 @@ Import and startup order:
    - `count_1r2`
    - `annotate_svs`
    - `annotate_png`
-   - `import_openslide`
-2. `import_openslide` runs import-time setup so `openslide` can be imported on Windows when `OPENSLIDE_BIN_PATH` is set.
-3. Global constants are copied from `cardiac_globals`.
-4. `check_filesystem()` creates:
+2. Global constants are copied from `cardiac_globals`.
+3. `check_filesystem()` creates:
    - `MODEL_DIR`
    - `SAVED_DATABASE_DIR`
    - `SLIDE_DX_DIR`
-5. GPU/model setup runs before `main()`:
+4. GPU/model setup runs before `main()`:
    - `device = utils.initialize_gpu()`
    - `model = torch.load(MODEL_DIR + "resnet50_ft")`
    - `model = model.to(device)`
    - `model.eval()`
-6. If run as a script, `main()` executes.
+5. If run as a script, `main()` executes.
 
 ## 2. Top-Level Main Flow
 
@@ -428,7 +426,7 @@ Mainline outputs include:
 
 These are not cleanup decisions by themselves, but they matter before removing code:
 
-1. `tiles.py` depends on `filter.filter_rgb_to_hsv`, `filter.filter_hsv_to_h`, `filter.filter_hsv_to_s`, and `filter.filter_hsv_to_v`, but those functions are not present in the current `Code/filter.py`.
+1. `tiles.py` depends on `filter.filter_rgb_to_hsv`, `filter.filter_hsv_to_h`, `filter.filter_hsv_to_s`, and `filter.filter_hsv_to_v`, but those functions are not present in the current `cardiac_acr/filter.py`.
 2. `tiles.summary_and_tiles()` overrides its own `save_top_tiles` argument and always enables top-tile saving.
 3. `annotate_svs.annotate_slide()` calls `get_extracted_slide_name()` without using the return value.
 4. `count_1r2.pad_image()` is defined but is not reached on the traced path.

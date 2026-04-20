@@ -10,8 +10,8 @@ from os import listdir
 import re
 import pickle
 
-import cardiac_globals as cg
-import cardiac_utils as utils
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
 
 
 
@@ -311,7 +311,7 @@ def get_coords(patchname):
 def get_coords_from_name(name):
     
     # Get coordinates from filename
-    m = re.match(".*-x([\d]*)-y([\d]*).*\..*", name)
+    m = re.match(r".*-x([\d]*)-y([\d]*).*\..*", name)
     x_coord = int(m.group(1))
     y_coord = int(m.group(2))
     
@@ -327,8 +327,6 @@ def main(slide_number):
         
 
 if __name__ == "__main__": main()
-
-
 
 
 

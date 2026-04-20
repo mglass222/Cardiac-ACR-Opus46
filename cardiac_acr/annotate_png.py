@@ -1,15 +1,14 @@
 # import project modules ###
 
 import os
-import cardiac_utils as utils
-import cardiac_globals as cg
-
-
 import pickle
 import time
-from PIL import Image
 
 import numpy as np
+from PIL import Image
+
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
 
 
 

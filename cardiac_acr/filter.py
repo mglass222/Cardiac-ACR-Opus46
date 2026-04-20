@@ -20,9 +20,9 @@ import numpy as np
 import os
 import skimage.morphology as sk_morphology
 
-import slide
-import util
-from util import Time
+from cardiac_acr import slide
+from cardiac_acr import util
+from cardiac_acr.util import Time
 
 
 def mask_percent(np_img):

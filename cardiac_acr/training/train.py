@@ -18,12 +18,11 @@ of phase 2 uses the ``_ft`` suffix and is the one loaded by
 ``cardiac_acr_diagnose_wsi.py`` at inference time.
 
 Usage:
-    python Code/training/train.py
+    python -m cardiac_acr.training.train
 """
 
 import copy
 import os
-import sys
 import time
 
 import torch
@@ -31,14 +30,10 @@ import torch.nn as nn
 import torchvision
 from torch import optim
 
-# Allow imports from the parent ``Code/`` directory.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
-import cardiac_utils as utils  # noqa: E402
-
-from training import data_utils  # noqa: E402
-from training.model import build_resnet, unfreeze_layers  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
+from cardiac_acr.training import data_utils
+from cardiac_acr.training.model import build_resnet, unfreeze_layers
 
 
 def train_model(device, model, batch_size, dataloaders, criterion, optimizer, num_epochs):

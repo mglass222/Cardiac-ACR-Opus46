@@ -20,7 +20,7 @@ validation accuracy is written to the same directory.
 Ported from ``Cardiac_ACR_Pytorch_V8_CrossValidation.ipynb``. The
 exploratory plotting cells from the bottom of the original notebook
 have been dropped — equivalent figures are produced by the scripts
-under ``Code/stats/``.
+under ``cardiac_acr/stats/``.
 
 NOTE: This script currently duplicates the training loop from
 ``train.py``. A future refactor should have ``cross_validation.py``
@@ -31,7 +31,6 @@ import copy
 import os
 import pickle
 import shutil
-import sys
 import time
 from os import listdir
 from os.path import isdir
@@ -44,14 +43,10 @@ from PIL import Image
 from torch import optim
 from torchvision import transforms
 
-# Allow imports from the parent ``Code/`` directory.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
-import cardiac_utils as utils  # noqa: E402
-
-from training import data_utils  # noqa: E402
-from training.model import build_resnet  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
+from cardiac_acr.training import data_utils
+from cardiac_acr.training.model import build_resnet
 
 
 NUM_FOLDS = 5

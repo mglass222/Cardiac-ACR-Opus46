@@ -21,10 +21,11 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
 
-import util
-import filter
-import slide
-from util import Time
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import filter
+from cardiac_acr import slide
+from cardiac_acr import util
+from cardiac_acr.util import Time
 
 TISSUE_HIGH_THRESH = 80
 TISSUE_LOW_THRESH = 10
@@ -57,7 +58,6 @@ FADED_MEDIUM_COLOR = (255, 255, 128)
 FADED_LOW_COLOR = (255, 210, 128)
 FADED_NONE_COLOR = (255, 128, 128)
 
-import cardiac_globals as cg
 FONT_PATH = cg.FONT_PATH
 SUMMARY_TITLE_FONT_PATH = cg.FONT_PATH
 

@@ -15,7 +15,6 @@ Ported from the lower half of ``Cardiac_ACR_Pytorch_Training_Set_Stats_V6.ipynb`
 
 import os
 import pickle
-import sys
 import time
 from os import listdir
 
@@ -23,11 +22,8 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-# Allow imports from the parent ``Code/`` directory.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import cardiac_globals as cg  # noqa: E402
-import cardiac_utils as utils  # noqa: E402
+from cardiac_acr import cardiac_globals as cg
+from cardiac_acr import cardiac_utils as utils
 
 
 def _build_transform(input_size):
