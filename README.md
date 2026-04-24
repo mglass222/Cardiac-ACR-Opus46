@@ -223,21 +223,22 @@ Prints:
 ### 5. Run end-to-end WSI inference
 
 ```bash
-# Disk-based (default): materializes intermediate tile + patch PNGs
+# Default: streaming. Reads 224×224 patches directly from the SVS via
+# OpenSlide, no intermediate tile/patch PNGs on disk. Preprocessing
+# drops from several minutes to <10 seconds per slide.
 python -m cardiac_acr.wsi.diagnose --backend uni
 
-# Streaming: reads 224×224 patches directly from the SVS via OpenSlide,
-# no intermediate patch PNGs on disk. Preprocessing drops from several
-# minutes to <10 seconds per slide.
-python -m cardiac_acr.wsi.diagnose --backend uni --streaming
+# Legacy disk-based path: materializes ~5 GB of intermediate tile +
+# patch PNGs per slide under data/DeepHistoPath/{tiles_png,tiles_png_split}/
+python -m cardiac_acr.wsi.diagnose --backend uni --no-streaming
 ```
 
 For each SVS file in `data/WSI/Test/`:
 
 1. Extract PNG + tissue-filtered image (`slide` + `filter` modules).
-2. Score tiles. In disk mode, also split into 224×224 patches on disk
-   (`tiles` + `tileset_utils`). In streaming mode, scoring is
-   in-memory per-slide.
+2. Score tiles. Default mode scores in-memory per-slide. With
+   `--no-streaming`, also splits into 224×224 patches on disk
+   (`tiles` + `tileset_utils`).
 3. Drop patches with < 50% tissue (inside the classify DataLoader).
 4. Encode surviving patches with UNI2-h and classify with the head.
 5. Threshold predictions (keep any patch whose top softmax exceeds

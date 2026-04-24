@@ -1341,3 +1341,26 @@ UNI features per test slide so threshold/head sweeps don't re-encode)
 and #6 (structured experiment logging). #4 (multi-slide pipelining)
 and #7 (profile pre-loop) are lower-priority given the pre-loop is
 now 6.8s.
+
+## 2026-04-24 — Streaming becomes the default
+
+Follow-up to the same-day streaming shipit. With the four-slide
+reproducibility check clean (109,885 patch pairs, 100% argmax
+agreement), flipped the default:
+
+- `run(streaming=False)` → `run(streaming=True)` in
+  `wsi/diagnose.py`; same for `classify_patches`.
+- CLI changed from `--streaming` (store_true, default off) to
+  `--streaming` / `--no-streaming` via
+  `argparse.BooleanOptionalAction` with `default=True`. `python -m
+  cardiac_acr.wsi.diagnose --backend uni` now runs streaming.
+  `--no-streaming` reinstates the legacy disk-based pipeline for
+  anyone who wants the 5 GB of intermediate PNGs (debugging, visual
+  inspection of rejected patches, etc.).
+- Module docstring + README updated; "Running the pipeline" now
+  documents the legacy path as an explicit opt-in under
+  `--no-streaming` instead of implying it's the default.
+
+The disk path code stays intact. Eventual paper-prep branch removes
+it along with `_PatchFileDataset`, the CLI flag, the conditional in
+`run()`, and `preprocessing/tileset_utils.py`.
