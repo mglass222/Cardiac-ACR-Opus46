@@ -33,11 +33,6 @@ ANNOTATED_PNG_DIR = os.path.join(BACKEND_DIR, "Annotated_Test_Slides")
 TEST_SLIDE_PREDICTIONS_DIR = os.path.join(BACKEND_DIR, "Test_Slide_Predictions")
 TEST_SLIDE_ANNOTATIONS_DIR = os.path.join(WSI_DIR, "TEST_SLIDE_ANNOTATIONS")
 
-# One cached tensor per split. Each file stores
-# {"features": FloatTensor [N, EMBED_DIM], "labels": LongTensor [N], "classes": list[str]}.
-TRAINING_FEATURES_PATH = os.path.join(FEATURE_DIR, "training.pt")
-VALIDATION_FEATURES_PATH = os.path.join(FEATURE_DIR, "validation.pt")
-
 
 #####################################################################
 # UNI backbone
@@ -54,6 +49,21 @@ INPUT_SIZE = 224                 # UNI2-h expects 224x224
 
 ENCODE_BATCH_SIZE = 32           # fits in ~5 GB on 8 GB cards in fp16/bf16; drop if OOM
 ENCODE_NUM_WORKERS = 8
+
+# Number of D4-symmetry views per training patch. 1 = canonical only
+# (legacy); 8 = full dihedral group (4 rotations x 2 flips). Validation
+# always uses 1 view so val-acc stays comparable across runs.
+NUM_TRAIN_VIEWS = 8
+
+
+# One cached tensor per split. Each file stores
+# {"features": FloatTensor [N, EMBED_DIM], "labels": LongTensor [N], "classes": list[str]}.
+# Training cache holds NUM_TRAIN_VIEWS encodings per source patch (one
+# per D4 symmetry); validation always holds one encoding per patch.
+TRAINING_FEATURES_PATH = os.path.join(
+    FEATURE_DIR, f"training_views{NUM_TRAIN_VIEWS}.pt"
+)
+VALIDATION_FEATURES_PATH = os.path.join(FEATURE_DIR, "validation.pt")
 
 
 #####################################################################

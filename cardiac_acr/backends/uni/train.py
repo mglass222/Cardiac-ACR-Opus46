@@ -73,6 +73,9 @@ def train_head(
     train_cache = FeatureCache.load(uni_cfg.TRAINING_FEATURES_PATH)
     val_cache = FeatureCache.load(uni_cfg.VALIDATION_FEATURES_PATH)
 
+    print(f"Training cache: {len(train_cache)} encodings "
+          f"({uni_cfg.NUM_TRAIN_VIEWS} D4 view(s) per source patch)")
+    print(f"Validation cache: {len(val_cache)} encodings (canonical view)")
     print("Training patches per class:", train_cache.class_counts())
     print("Validation patches per class:", val_cache.class_counts())
 
