@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cardiac-acr"
+version = "0.2.0"
+description = "Cardiac allograft rejection WSI diagnosis pipeline with interchangeable UNI2-h and ResNet-50 patch backends."
+requires-python = ">=3.10"
+dependencies = [
+    "timm>=1.0.0",
+    "huggingface_hub",
+    "torch",
+    "torchvision",
+    "numpy",
+    "Pillow",
+    "opencv-python",
+    "scipy",
+    "scikit-image",
+    "scikit-learn",
+    "openslide-python",
+    "matplotlib",
+]
+
+[tool.setuptools.packages.find]
+include = ["cardiac_acr*"]
