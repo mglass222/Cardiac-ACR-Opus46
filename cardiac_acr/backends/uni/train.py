@@ -182,18 +182,30 @@ def train_head(
     return model, best_acc
 
 
-def _save_checkpoint(model, head_type, classes):
+def _save_checkpoint(model, head_type, classes, path=None,
+                     lora_backbone=None, lora_config=None):
+    """Save the head checkpoint, optionally embedding LoRA adapter weights.
+
+    When ``lora_backbone`` and ``lora_config`` are provided, walks the
+    backbone's named parameters and serializes any tensor whose name
+    contains ``lora_A`` or ``lora_B``. The frozen UNI2-h base is loaded
+    fresh from HF Hub at inference time, so we deliberately never
+    persist the base weights.
+    """
     os.makedirs(uni_cfg.MODEL_DIR, exist_ok=True)
-    path = os.path.join(uni_cfg.MODEL_DIR, f"uni2h_{head_type}_head.pt")
-    torch.save(
-        {
-            "state_dict": model.state_dict(),
-            "head_type": head_type,
-            "classes": classes,
-            "embed_dim": uni_cfg.EMBED_DIM,
-        },
-        path,
-    )
+    if path is None:
+        path = os.path.join(uni_cfg.MODEL_DIR, f"uni2h_{head_type}_head.pt")
+    blob = {
+        "state_dict": model.state_dict(),
+        "head_type": head_type,
+        "classes": classes,
+        "embed_dim": uni_cfg.EMBED_DIM,
+    }
+    if lora_backbone is not None and lora_config is not None:
+        from cardiac_acr.backends.uni.lora import lora_state_dict
+        blob["lora_state_dict"] = lora_state_dict(lora_backbone)
+        blob["lora_config"] = dict(lora_config)
+    torch.save(blob, path)
     print(f"Saved head checkpoint -> {path}")
 
 

@@ -34,13 +34,40 @@ def load_classifier(
     device: torch.device,
     checkpoint_path: Optional[str] = None,
 ) -> BackendClassifier:
-    backbone = UNIBackbone(device=device)
     head, blob = load_head_checkpoint(path=checkpoint_path)
     head = head.to(device).eval()
 
+    # If the checkpoint was produced by the LoRA fine-tune, re-apply
+    # the same wrappers to the backbone before loading adapter weights.
+    # `compile=False` is required: torch.compile cannot survive the
+    # submodule replacement that LoRA performs.
+    lora_cfg = blob.get("lora_config")
+    if lora_cfg is not None:
+        from cardiac_acr.backends.uni.lora import apply_lora_to_uni
+        backbone = UNIBackbone(device=device, compile=False)
+        apply_lora_to_uni(
+            backbone,
+            target_blocks=lora_cfg["target_blocks"],
+            rank=lora_cfg["rank"],
+            alpha=lora_cfg["alpha"],
+            dropout=lora_cfg.get("dropout", 0.0),
+            targets=tuple(lora_cfg.get("targets", ("qkv",))),
+        )
+        # strict=False because we deliberately don't persist the frozen
+        # base UNI2-h weights — those load fresh from HF Hub. Any
+        # *unexpected* key (one we don't have a slot for) is a real
+        # config mismatch and should fail loudly.
+        missing, unexpected = backbone.model.load_state_dict(
+            blob["lora_state_dict"], strict=False
+        )
+        assert not unexpected, f"Unexpected LoRA keys in checkpoint: {unexpected}"
+        backbone.model.eval()
+    else:
+        backbone = UNIBackbone(device=device)
+
     @torch.no_grad()
     def classify(batch_on_device: torch.Tensor) -> torch.Tensor:
-        # Backbone runs in bf16 autocast internally and returns float32
+        # Backbone runs in autocast internally and returns float32
         # CPU features; keep that, then move to `device` for the head.
         feats = backbone.encode(batch_on_device.cpu())
         return head(feats.to(device))

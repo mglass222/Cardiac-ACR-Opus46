@@ -84,3 +84,28 @@ TRAIN_LEARNING_RATE = 1e-3
 TRAIN_WEIGHT_DECAY = 1e-4
 TRAIN_NUM_EPOCHS = 50
 TRAIN_COSINE_WARMUP_EPOCHS = 2
+
+
+#####################################################################
+# LoRA fine-tune (used by backends/uni/finetune.py)
+#####################################################################
+
+# LoRA structure
+LORA_RANK = 8
+LORA_ALPHA = 32                  # scaling=alpha/rank=4; compensates for
+                                 # init_values=1e-5 LayerScale damping.
+LORA_TARGET_BLOCKS = 4           # last N of 24 ViT-H blocks
+LORA_TARGETS = ("qkv",)          # ("qkv",) or ("qkv", "proj")
+LORA_DROPOUT = 0.05
+
+# LoRA training hyperparameters
+LORA_NUM_EPOCHS = 15
+LORA_BATCH_SIZE = 16             # 32 if memory allows; drop to 8 + grad accum if OOM
+LORA_LR = 1e-4                   # LoRA params
+LORA_HEAD_LR = 5e-5              # warm-started head: gentle
+LORA_WARMUP_EPOCHS = 2
+LORA_GRAD_CLIP = 1.0             # essential at fp16
+LORA_CLASS_WEIGHT_CLIP = 5.0     # clamp class-weighted CE so the 13.3x
+                                 # Hemorrhage weight doesn't dominate updates
+LORA_EARLY_STOP_PATIENCE = 5     # epochs without val improvement -> stop
+LORA_NUM_WORKERS = 8
