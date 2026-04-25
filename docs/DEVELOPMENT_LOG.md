@@ -1630,6 +1630,58 @@ legacy `training.pt` stays on disk for fallback; can be deleted once
 confidence is established. To reproduce the baseline:
 `uni_cfg.NUM_TRAIN_VIEWS = 1; uni_cfg.TRAINING_FEATURES_PATH = ".../training.pt"`.
 
+### Cost-benefit retrospective (added after the HP sweep)
+
+A later HP sweep on 2026-04-24 established the run-to-run val-acc
+noise floor at **0.005 pp (~13 patches of 2,743)** via a 4-trial
+repeat of the current default config. With that number in hand, the
+D4 lift looks more borderline than the original 0.58 pp single-trial
+A/B suggested:
+
+| | Val acc | Trials | Spread |
+|---|---|---|---|
+| 1-view baseline | 0.9344 | 1 (single A/B) | not measured |
+| D4 (8 views), MLP 1e-3 1e-4 | **0.9401** | 4-trial mean (sweep verification) | 0.0047 |
+
+The gap is 0.0057 — only **1.2× the noise floor**. A strict "must
+clear noise by 2×" bar would reject it. If we'd run 4 trials on the
+1-view baseline too, its mean might land at 0.935 ± 0.005 and the
+margin could shrink further.
+
+**Cost** (one-time):
+
+| | Encode time | Storage |
+|---|---|---|
+| 1-view | ~3 min | 72 MB |
+| D4 (8 views) | ~20 min (+17 min) | 576 MB (+500 MB) |
+
+Recurring cost is identical: head training stays at ~36 s either way.
+
+**Verdict.** Borderline-real lift, trivial one-time cost. We keep
+D4 because:
+
+- It's already done; no ongoing tax.
+- Per-class F1 improved on every non-trivial class uniformly. Five
+  same-direction shifts under the null are unlikely (~p < 0.03), so
+  there's some weak Bayesian reason to believe the signal is real
+  beyond just the overall-accuracy point estimate.
+- Cost ceiling never rises. Encode is one-time per backbone or
+  augmentation change.
+
+**The honest framing**: D4 was a worthwhile *experiment* whose lift
+is at the edge of detection. The main value wasn't the +0.58 pp — it
+was ruling out "missing augmentation" as the cause of the 0.94
+plateau. That ruling-out unblocked the subsequent LoRA experiment
+(also a negative result, but for a different reason), and together
+they pointed to "the val set itself contains hard examples" as the
+real ceiling.
+
+If we were starting fresh today with this noise-floor knowledge, the
+case for D4 would be weak enough that simpler `NUM_TRAIN_VIEWS = 1`
+might be a defensible default, with the saved compute redirected to
+clearer-payoff levers (slide-level metric, more annotated data,
+test-time D4 averaging at inference).
+
 ### Next levers (not yet attempted)
 
 If closing the remaining gap matters, the productive directions are:
