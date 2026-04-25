@@ -61,6 +61,8 @@ def train_head(
     batch_size=None,
     warmup_epochs=None,
     device=None,
+    save=True,
+    verbose=True,
 ):
     head_type = head_type or uni_cfg.HEAD_TYPE
     lr = lr if lr is not None else uni_cfg.TRAIN_LEARNING_RATE
@@ -73,15 +75,17 @@ def train_head(
     train_cache = FeatureCache.load(uni_cfg.TRAINING_FEATURES_PATH)
     val_cache = FeatureCache.load(uni_cfg.VALIDATION_FEATURES_PATH)
 
-    print(f"Training cache: {len(train_cache)} encodings "
-          f"({uni_cfg.NUM_TRAIN_VIEWS} D4 view(s) per source patch)")
-    print(f"Validation cache: {len(val_cache)} encodings (canonical view)")
-    print("Training patches per class:", train_cache.class_counts())
-    print("Validation patches per class:", val_cache.class_counts())
+    if verbose:
+        print(f"Training cache: {len(train_cache)} encodings "
+              f"({uni_cfg.NUM_TRAIN_VIEWS} D4 view(s) per source patch)")
+        print(f"Validation cache: {len(val_cache)} encodings (canonical view)")
+        print("Training patches per class:", train_cache.class_counts())
+        print("Validation patches per class:", val_cache.class_counts())
 
     num_classes = len(train_cache.classes)
     weights = _class_weights(train_cache.labels, num_classes).to(device)
-    print("class weights:", weights.cpu().tolist())
+    if verbose:
+        print("class weights:", weights.cpu().tolist())
 
     model = build_head(head_type).to(device)
     optimizer = torch.optim.AdamW(
@@ -102,8 +106,9 @@ def train_head(
     total_steps = steps_per_epoch * num_epochs
     warmup_steps = steps_per_epoch * warmup_epochs
 
-    print(f"\nHead: {head_type} | epochs: {num_epochs} | batch: {batch_size} | "
-          f"lr: {lr} | device: {device}")
+    if verbose:
+        print(f"\nHead: {head_type} | epochs: {num_epochs} | batch: {batch_size} | "
+              f"lr: {lr} | wd: {weight_decay} | device: {device}")
 
     best_acc = 0.0
     best_state = copy.deepcopy(model.state_dict())
@@ -155,23 +160,26 @@ def train_head(
         val_loss = val_loss_sum / max(1, val_total)
         val_acc = val_correct / max(1, val_total)
 
-        print(
-            f"epoch {epoch+1:>3}/{num_epochs} | "
-            f"train loss {train_loss:.4f} acc {train_acc:.4f} | "
-            f"val loss {val_loss:.4f} acc {val_acc:.4f} | "
-            f"lr {lr * scale:.2e}"
-        )
+        if verbose:
+            print(
+                f"epoch {epoch+1:>3}/{num_epochs} | "
+                f"train loss {train_loss:.4f} acc {train_acc:.4f} | "
+                f"val loss {val_loss:.4f} acc {val_acc:.4f} | "
+                f"lr {lr * scale:.2e}"
+            )
 
         if val_acc > best_acc:
             best_acc = val_acc
             best_state = copy.deepcopy(model.state_dict())
 
     elapsed = time.time() - t0
-    print(f"\nTraining complete in {elapsed:.1f}s. Best val acc: {best_acc:.4f}")
+    if verbose:
+        print(f"\nTraining complete in {elapsed:.1f}s. Best val acc: {best_acc:.4f}")
 
     model.load_state_dict(best_state)
-    _save_checkpoint(model, head_type, train_cache.classes)
-    return model
+    if save:
+        _save_checkpoint(model, head_type, train_cache.classes)
+    return model, best_acc
 
 
 def _save_checkpoint(model, head_type, classes):

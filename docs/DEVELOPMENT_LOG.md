@@ -1650,3 +1650,86 @@ If closing the remaining gap matters, the productive directions are:
 
 These are deferred until and unless the val-acc gap matters for a
 specific downstream goal (paper threshold, reviewer comment).
+
+---
+
+## 2026-04-24 — Head hyperparameter sweep (negative result)
+
+### Motivation
+
+D4 augmentation lifted val-acc from 0.9344 to ~0.94 but the curves
+showed clear overfitting (train acc → 1.0, val loss climbing). Open
+question: was the existing config (`HEAD_TYPE=mlp`, `lr=1e-3`,
+`weight_decay=1e-4`, dropout 0.4) too aggressive? Worth a quick sweep
+before assuming the plateau is structural.
+
+### Implementation
+
+`backends/uni/sweep_head.py` — 18-config grid over
+{linear, mlp} × {1e-3, 3e-4, 1e-4} × {1e-4, 1e-3, 1e-2}. Each config
+trains for 50 epochs on the D4 cache, no checkpoint write, captures
+best val acc. Refactored `train_head` to accept `save=False`,
+`verbose=False`, and to return `(model, best_acc)` so the sweep can
+loop cleanly. CSV summary written to `data/Logs/head_sweep.csv`.
+
+### Single-trial sweep results
+
+| Rank | Head | LR | WD | Best val acc |
+|---|---|---|---|---|
+| 1 | mlp | 3e-4 | 1e-3 | 0.9417 |
+| 2 | mlp | 1e-3 | 1e-4 | 0.9409 *(current default)* |
+| 3 | mlp | 1e-3 | 1e-2 | 0.9398 |
+| 4 | mlp | 3e-4 | 1e-4 | 0.9398 |
+| … | … | … | … | … |
+| 9 | linear | 1e-3 | 1e-3 | 0.9369 *(best linear)* |
+| … | … | … | … | … |
+| 18 | linear | 3e-4 | 1e-2 | 0.9344 |
+
+Total runtime: 618 s for the grid (~34 s/run on a 2070 SUPER).
+
+### Variance check (4 repeats each)
+
+The 0.0008 gap between the top sweep result and the current default
+looked like noise, so I re-ran both 4 times:
+
+| Config | Trials | Mean | Spread |
+|---|---|---|---|
+| Current default (mlp, 1e-3, 1e-4) | 0.9420 / 0.9373 / 0.9413 / 0.9398 | **0.9401** | 0.0047 |
+| Sweep winner (mlp, 3e-4, 1e-3) | 0.9377 / 0.9391 / 0.9391 / 0.9388 | 0.9387 | 0.0015 |
+
+The single-trial spread (~5 pp on the noise scale, 13 patches out of
+2,743) is **larger than any gap between MLP configs in the 18-run
+sweep**. On the mean, the current default actually outperforms the
+"winner" by 0.0014 pp. The single-trial 0.9417 was a lucky draw.
+
+### What this rules out
+
+Hyperparameter tuning is not the lever for this dataset. Within the
+swept space, MLP > Linear by ~0.005 (real signal — every MLP run
+beats every Linear run), and within MLPs every config lands in
+0.94 ± 0.005. The val plateau is structural, not optimization-driven.
+
+The training defaults stay unchanged: `HEAD_TYPE = "mlp"`,
+`TRAIN_LEARNING_RATE = 1e-3`, `TRAIN_WEIGHT_DECAY = 1e-4`,
+`HEAD_DROPOUT = 0.4`, `HEAD_HIDDEN_DIM = 512`, `TRAIN_NUM_EPOCHS = 50`,
+`TRAIN_COSINE_WARMUP_EPOCHS = 2`, `TRAIN_BATCH_SIZE = 512`.
+
+### Implications for the next move
+
+The 4-run noise floor (~0.005 pp = 13 patches) is the bar any future
+ablation needs to clear. Specifically:
+
+- **Test-time D4 averaging at WSI inference** — would need to lift
+  patch-level (or slide-level) accuracy by more than ~0.005 to be
+  detectable on this val set.
+- **Per-batch feature-space noise / dropout in `train.py`** — same
+  threshold.
+- **End-to-end fine-tuning** — large enough effect to be obviously
+  detectable, but expensive.
+
+Reconsidering the goal: patch-level val acc may be the wrong metric
+for this project. The actual deliverable is slide-level rejection
+grade (`0R`/`1R1A`/`1R2`/`2R`), which depends on focus counts above
+threshold, not raw patch accuracy. Future ablations should report
+slide-level dx agreement (or at minimum, per-class recall on
+clinically actionable classes) alongside the patch metric.
