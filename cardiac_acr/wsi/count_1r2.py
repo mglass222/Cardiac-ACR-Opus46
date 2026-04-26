@@ -95,6 +95,8 @@ def remove_duplicates(combined_boxes):
 
 
 def filter_boxes(boxes):
+    if not boxes:
+        return []
     
     num_boxes = len(boxes)
     box_areas = []
@@ -400,12 +402,12 @@ def analyze_segments(slide_number):
     segment_list = []
 
     path = os.path.join(cg.ROI_1R2_DIR, str(slide_number))
+    if not os.path.isdir(path):
+        return 0
 
-    all_roi = os.listdir(path)
-
-    for roi in all_roi: 
-        if "dilated" in roi:
-            all_roi.remove(roi)
+    all_roi = [roi for roi in os.listdir(path) if "dilated" not in roi]
+    if not all_roi:
+        return 0
 
     for i in range(len(all_roi)):
 
@@ -441,7 +443,7 @@ def analyze_segments(slide_number):
         segment_list.append(num_1r2)
 
 
-    max_1r2 = max(segment_list)
+    max_1r2 = max(segment_list) if segment_list else 0
 
     # print("\n", "max_1r2 = ", max_1r2, "\n")
 

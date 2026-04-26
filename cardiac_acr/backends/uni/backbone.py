@@ -43,25 +43,31 @@ class UNIBackbone(nn.Module):
             self.model = torch.compile(self.model)
 
     @torch.no_grad()
-    def encode(self, images):
+    def encode(self, images, return_cpu=True):
         """Encode a batch of preprocessed tensors.
 
         Parameters
         ----------
         images : torch.Tensor
             Shape ``(B, 3, 224, 224)``, already ImageNet-normalized.
+        return_cpu : bool, optional
+            If True, return float32 features on CPU for feature-cache
+            workflows. If False, keep features on ``self.device`` for
+            inference pipelines that immediately feed a device-resident
+            head.
 
         Returns
         -------
         torch.Tensor
-            Shape ``(B, EMBED_DIM)`` (1536), **float32 on CPU** so the
-            downstream head trains in fp32 regardless of the autocast
-            dtype used for the forward pass.
+            Shape ``(B, EMBED_DIM)`` (1536), float32. By default this
+            is returned on CPU so downstream head training stays in fp32
+            regardless of the autocast dtype used for the forward pass.
         """
         images = images.to(self.device, non_blocking=True)
         with torch.autocast(device_type=self.device.type, dtype=self.dtype):
             feats = self.model(images)
-        return feats.float().cpu()
+        feats = feats.float()
+        return feats.cpu() if return_cpu else feats
 
 
 def _default_device():

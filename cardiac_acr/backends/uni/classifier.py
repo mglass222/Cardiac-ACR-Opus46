@@ -67,10 +67,10 @@ def load_classifier(
 
     @torch.no_grad()
     def classify(batch_on_device: torch.Tensor) -> torch.Tensor:
-        # Backbone runs in autocast internally and returns float32
-        # CPU features; keep that, then move to `device` for the head.
-        feats = backbone.encode(batch_on_device.cpu())
-        return head(feats.to(device))
+        # Keep inference features on-device; the feature-cache workflow
+        # still uses UNIBackbone.encode()'s CPU-returning default.
+        feats = backbone.encode(batch_on_device, return_cpu=False)
+        return head(feats)
 
     return BackendClassifier(
         name="uni",
